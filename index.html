@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VerseMarking — Pro Audio Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── ULTRA-PREMIUM LIGHT THEME (REDESIGNED) ── */
+:root, [data-theme="light"] {
+  --bg: #f4f7f9; 
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --border-glow: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-faint: #94a3b8;
+  --accent: #10b981; 
+  --accent-dark: #059669;
+  --accent-light: #d1fae5;
+  --accent-glow: rgba(16, 185, 129, 0.2);
+  --blue: #3b82f6; 
+  --blue-glow: rgba(59, 130, 246, 0.2);
+  --danger: #ef4444;
+  --danger-bg: #fef2f2;
+  --ok: #10b981;
+  --ok-bg: #f0fdf4;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+  --shadow-float: 0 12px 32px -8px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.03);
+  --shadow-btn: 0 6px 20px -4px rgba(16, 185, 129, 0.35);
+  --nav-bg: rgba(255, 255, 255, 0.85);
+  --ambient-1: rgba(16, 185, 129, 0.08);
+  --ambient-2: rgba(59, 130, 246, 0.08);
+  --wave-bg: #f8fafc;
+}
+
+/* ── ULTRA-PREMIUM DARK THEME (PURE BLACK) ── */
+[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #09090b;
+  --surface-hover: #18181b;
+  --border: #27272a;
+  --border-glow: #3f3f46;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-faint: #475569;
+  --accent: #10b981;
+  --accent-dark: #34d399;
+  --accent-light: #022c22;
+  --accent-glow: rgba(16, 185, 129, 0.25);
+  --blue: #3b82f6;
+  --blue-glow: rgba(59, 130, 246, 0.3);
+  --danger: #ef4444;
+  --danger-bg: #450a0a;
+  --ok: #10b981;
+  --ok-bg: #064e3b;
+  --shadow-float: 0 30px 60px -12px rgba(0,0,0,1), 0 0 0 1px #27272a;
+  --shadow-btn: 0 4px 16px -2px rgba(16, 185, 129, 0.4);
+  --nav-bg: rgba(0, 0, 0, 0.6);
+  --ambient-1: rgba(16, 185, 129, 0.08);
+  --ambient-2: rgba(59, 130, 246, 0.05);
+  --wave-bg: #000000;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+html, body { min-height: 100%; overflow-x: hidden; }
+
+body {
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex; flex-direction: column;
+  transition: background-color 0.4s ease, color 0.4s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+}
+
+@media (min-width: 1200px) {
+  html, body { height: 100%; overflow: hidden; }
+}
+
+/* ── AMBIENT BACKGROUND GLOW ── */
+.ambient-bg {
+  position: absolute; top: -20%; left: -10%; width: 60%; height: 60%;
+  background: radial-gradient(circle, var(--ambient-1) 0%, transparent 70%);
+  filter: blur(80px); pointer-events: none; z-index: 0; transition: 0.4s;
+}
+.ambient-bg-2 {
+  position: absolute; bottom: -20%; right: -10%; width: 60%; height: 60%;
+  background: radial-gradient(circle, var(--ambient-2) 0%, transparent 70%);
+  filter: blur(80px); pointer-events: none; z-index: 0; transition: 0.4s;
+}
+
+/* ── FADE ANIMATIONS ── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.animate-1 { animation: fadeIn 0.6s ease forwards; }
+.animate-2 { animation: fadeIn 0.6s ease 0.1s forwards; opacity: 0; }
+.animate-3 { animation: fadeIn 0.6s ease 0.2s forwards; opacity: 0; }
+
+/* ── TOP NAV ── */
+.topnav {
+  background: var(--nav-bg); 
+  -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  display: flex; align-items: center; justify-content: space-between;
+  height: clamp(52px, 7.5vh, 64px); flex-shrink: 0; z-index: 100; position: relative;
+}
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: var(--text-main); text-decoration: none; letter-spacing: -0.02em; }
+@media (min-width: 640px) { .logo { gap: 12px; font-size: 16px; } }
+.logo-icon { width: 30px; height: 30px; flex-shrink: 0; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn); }
+@media (min-width: 640px) { .logo-icon { width: 32px; height: 32px; } }
+.logo-icon svg { fill: #fff; width: 15px; height: 15px; }
+
+.nav-right { display: flex; gap: 6px; align-items: center; }
+@media (min-width: 480px) { .nav-right { gap: 10px; } }
+@media (min-width: 640px) { .nav-right { gap: 12px; } }
+.theme-toggle { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 5px 10px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 11px; font-weight: 600; color: var(--text-muted); box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+@media (min-width: 480px) { .theme-toggle { padding: 6px 12px; font-size: 12px; gap: 7px; } }
+@media (min-width: 640px) { .theme-toggle { padding: 6px 14px; gap: 8px; } }
+.theme-toggle:hover { border-color: var(--accent); color: var(--text-main); box-shadow: 0 0 0 3px var(--accent-glow); }
+@media (max-width: 380px) { .theme-toggle-label { display: none; } }
+
+/* ── HEADER ── */
+.hero {
+  padding: clamp(0.4rem, 1.8vh, 1.5rem) clamp(1rem, 3vw, 2rem) clamp(0.2rem, 0.8vh, 0.5rem);
+  text-align: center; max-width: 1500px; margin: 0 auto; width: 100%;
+  flex-shrink: 0; position: relative; z-index: 10;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.hero h1 { font-size: clamp(1.1rem, 4.5vw, 1.6rem); font-weight: 800; color: var(--text-main); letter-spacing: -0.03em; margin-bottom: 4px; text-align: center; line-height: 1.3; }
+.text-gradient { background: linear-gradient(135deg, var(--accent) 0%, #34d399 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero p { color: var(--text-muted); font-size: clamp(12px, 2.8vw, 14px); font-weight: 400; max-width: 600px; text-align: center; margin-top: 4px; }
+
+/* ── FLUID MAIN GRID ── */
+.container {
+  max-width: 1500px; width: 100%; margin: 0 auto;
+  padding: clamp(0.4rem, 1.2vh, 1rem) clamp(1rem, 3vw, 2rem) clamp(0.75rem, 1.5vh, 1.5rem);
+  flex: 1; min-height: 0; display: grid;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr);
+  position: relative; z-index: 10;
+}
+@media (min-width: 1000px) { .container { grid-template-columns: 1fr 1fr; align-items: stretch; } }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float); display: flex; flex-direction: column; 
+  height: 100%; max-height: 100%; min-height: 0; position: relative;
+  transition: border-color 0.4s, background-color 0.4s;
+}
+.card::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: var(--radius-lg); border: 1px solid var(--border-glow); opacity: 0.3;
+}
+
+.card-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: clamp(0.55rem, 1.4vh, 0.85rem) clamp(1rem, 2vw, 1.25rem);
+  border-bottom: 1px solid var(--border); flex-shrink: 0; background: rgba(0,0,0,0.01);
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+}
+.card-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+[data-theme="dark"] .card-icon { background: var(--border); border-color: #3f3f46; color: #fff;}
+.card-title { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+
+.left-body {
+  padding: clamp(0.75rem, 1.8vh, 1.25rem) clamp(1rem, 2.5vw, 1.5rem);
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  gap: clamp(0.5rem, 1.1vh, 0.85rem); overflow: visible;
+}
+.right-body {
+  padding: clamp(0.75rem, 1.8vh, 1.25rem) clamp(1rem, 2.5vw, 1.5rem);
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+}
+
+/* ── COMPACT DROP ZONE ── */
+#drop-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius-md);
+  text-align: center; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--surface-hover); position: relative;
+  min-height: clamp(100px, 14vh, 170px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: clamp(1rem, 2.5vh, 1.75rem); flex-shrink: 0;
+}
+#drop-zone:hover, #drop-zone.over { border-color: var(--accent); background: var(--accent-light); }
+[data-theme="dark"] #drop-zone { background: #000000; }
+[data-theme="dark"] #drop-zone:hover, [data-theme="dark"] #drop-zone.over { background: rgba(16, 185, 129, 0.1); border-color: var(--accent); }
+#drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+.wave-icon { display: flex; gap: 5px; margin-bottom: 1rem; height: 28px; pointer-events: none; }
+.wave-bar { width: 4px; border-radius: 99px; background: var(--text-faint); animation: wavePulse 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; transform-origin: bottom; }
+.wave-bar:nth-child(2n) { animation-delay: 0.2s; } .wave-bar:nth-child(3n) { animation-delay: 0.4s; }
+@keyframes wavePulse { 0%, 100% { transform: scaleY(0.4); opacity: 0.5;} 50% { transform: scaleY(1); opacity: 1; background: var(--accent); } }
+.drop-title { font-weight: 600; font-size: 16px; margin-bottom: 6px; color: var(--text-main); }
+.drop-hint { font-size: 14px; color: var(--text-muted); }
+
+/* File Meta */
+.file-meta { display: none; align-items: center; gap: 14px; padding: 1rem 1.25rem; background: var(--surface-hover); border: 1px solid var(--border); border-radius: var(--radius-md); flex-shrink: 0; height: 76px; }
+.play-btn { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-btn); flex-shrink: 0;}
+.play-btn:hover { transform: scale(1.08); }
+.play-btn svg { width: 16px; height: 16px; fill: currentColor; margin-left: 2px;}
+.play-btn.playing svg { margin-left: 0; }
+.file-details { display: flex; flex-direction: column; flex: 1; overflow: hidden; gap: 4px;}
+.fl-name { font-weight: 600; font-size: 15px; font-family: 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
+.fl-info { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;}
+
+#clear-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
+#clear-btn:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+/* Waveform Canvas Container */
+#waveform-wrap {
+  display: none; position: relative; border-radius: var(--radius-md); overflow: hidden;
+  border: 1px solid var(--border); background: var(--wave-bg); width: 100%;
+  flex: 1 1 clamp(70px, 11vh, 150px);
+  min-height: clamp(60px, 9vh, 100px); cursor: crosshair;
+}
+canvas#waveform, canvas#wave-overlay { width: 100%; height: 100%; position: absolute; inset: 0; }
+
+.open-full-btn {
+  position: absolute; top: 10px; right: 10px; width: 34px; height: 34px;
+  background: rgba(15, 23, 42, 0.4); color: #fff; border: 1px solid rgba(255,255,255,0.1); 
+  border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); z-index: 10; backdrop-filter: blur(8px);
+}
+#waveform-wrap:hover .open-full-btn { opacity: 1; transform: translateY(0); }
+.open-full-btn:hover { background: var(--accent); border-color: var(--accent); transform: scale(1.05); }
+.open-full-btn svg { width: 18px; height: 18px; }
+
+/* ── SETTINGS GRID ── */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; flex-shrink: 0; }
+.field-label { display: flex; flex-direction: column; gap: 6px; align-self: start; }
+.field-label span { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.field-label input { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 0.65rem 1rem; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+.field-label input:focus:not(:disabled) { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.field-label input:hover:not(:focus):not(:disabled) { border-color: var(--text-muted); }
+.field-label input:disabled { opacity: 0.6; cursor: not-allowed; background-color: var(--surface-hover); color: var(--text-muted); }
+
+.field-label select { 
+  background: var(--surface) url('data:image/svg+xml;utf8,<svg fill="%2364748b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 1rem center / 16px 16px;
+  appearance: none; -webkit-appearance: none; border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); 
+  font-family: inherit; font-size: 14px; padding: 0.65rem 2.5rem 0.65rem 1rem; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 2px rgba(0,0,0,0.02); cursor: pointer;
+}
+.field-label select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.field-label select:hover:not(:focus):not(:disabled) { border-color: var(--text-muted); }
+.field-label select:disabled { opacity: 0.6; cursor: not-allowed; background-color: var(--surface-hover); color: var(--text-muted); }
+
+/* ── CUSTOM CHAPTER DROPDOWN ── */
+.cdd-wrap { position: relative; width: 100%; }
+.cdd-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text-main); font-family: inherit; font-size: 14px;
+  padding: 0.65rem 1rem; cursor: pointer; user-select: none; outline: none; width: 100%;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.cdd-trigger:hover { border-color: var(--text-muted); }
+.cdd-trigger:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.cdd-wrap.is-open .cdd-trigger { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.cdd-wrap.is-disabled .cdd-trigger { opacity: 0.6; cursor: not-allowed; pointer-events: none; background-color: var(--surface-hover); color: var(--text-muted); }
+.cdd-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; color: inherit; }
+.cdd-arrow { width: 16px; height: 16px; fill: #64748b; flex-shrink: 0; margin-left: 6px; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
+.cdd-wrap.is-open .cdd-arrow { transform: rotate(180deg); }
+
+.cdd-list {
+  position: fixed; z-index: 99999; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 8px 30px -4px rgba(0,0,0,0.14), 0 24px 48px -10px rgba(0,0,0,0.10), 0 0 0 1px var(--border);
+  overflow-y: auto; max-height: min(340px, 50vh); min-width: 120px;
+  opacity: 0; transform: scaleY(0.9) translateY(-6px); transform-origin: top center; pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+[data-theme="dark"] .cdd-list { box-shadow: 0 8px 30px -4px rgba(0,0,0,0.6), 0 24px 60px -10px rgba(0,0,0,0.8), 0 0 0 1px #27272a; }
+.cdd-list.opens-up { transform-origin: bottom center; transform: scaleY(0.9) translateY(6px); }
+.cdd-wrap.is-open .cdd-list { opacity: 1; transform: scaleY(1) translateY(0); pointer-events: auto; }
+.cdd-list::-webkit-scrollbar { width: 5px; } .cdd-list::-webkit-scrollbar-track { background: transparent; border-radius: 99px; } .cdd-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+[data-theme="dark"] .cdd-list::-webkit-scrollbar-thumb { background: #3f3f46; }
+.cdd-list::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+.cdd-option { padding: 0.65rem 1rem; font-size: 14px; color: var(--text-main); cursor: pointer; line-height: 1.4; transition: background 0.1s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cdd-option:first-child { border-radius: 9px 9px 0 0; } .cdd-option:last-child  { border-radius: 0 0 9px 9px; } .cdd-option:only-child  { border-radius: 9px; }
+.cdd-option:hover, .cdd-option.is-focused { background: var(--surface-hover); }
+.cdd-option.is-selected { color: var(--accent); font-weight: 600; background: var(--accent-light); }
+.cdd-option.is-selected:hover, .cdd-option.is-selected.is-focused { background: var(--accent-light); filter: brightness(0.96); }
+
+/* ── MORE SETTINGS (OVERLAY DROPDOWN) ── */
+.more-settings { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); transition: border-color 0.3s; position: relative; width: 100%; }
+.more-settings summary { padding: 0.65rem 1rem; font-size: 14px; font-weight: 600; color: var(--text-main); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none; transition: background 0.2s; border-radius: 10px; }
+.more-settings summary:hover { background: var(--surface-hover); }
+.more-settings summary::-webkit-details-marker { display: none; }
+.more-settings summary::after { content: '▼'; font-size: 10px; color: var(--text-muted); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.more-settings[open] summary::after { transform: rotate(180deg); }
+.more-settings-content { position: absolute; bottom: calc(100% + 6px); left: 0; right: 0; z-index: 100; padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.15), 0 0 0 1px var(--border); }
+[data-theme="dark"] .more-settings-content { box-shadow: 0 10px 40px -10px rgba(0,0,0,0.7), 0 0 0 1px #27272a; }
+
+.toggle-group { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; flex-shrink: 0; transition: 0.2s;}
+.toggle-group:hover { border-color: var(--text-muted); }
+.toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-track { position: absolute; inset: 0; background: var(--text-faint); border-radius: 20px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+[data-theme="dark"] .toggle-track { background: #3f3f46; }
+.toggle-switch input:checked + .toggle-track { background: var(--accent); }
+.toggle-track::after { content: ''; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+.toggle-switch input:checked + .toggle-track::after { transform: translateX(20px); }
+.toggle-label-text { font-size: 13px; font-weight: 500; color: var(--text-main); user-select: none; }
+#tail-note { display: none; font-size: 12px; color: var(--text-muted); margin-top: -0.5rem; flex-shrink: 0; }
+
+/* ── EXECUTION ZONE ── */
+.exec-zone { margin-top: auto; padding-top: clamp(0.5rem, 1.2vh, 0.75rem); border-top: 1px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; }
+.log-area { font-size: 12px; line-height: 1.3; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); margin-bottom: 0.75rem; background: var(--surface-hover); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);}
+.log-area .ts { opacity: 0.5; margin-right: 8px; }
+.log-area .ok { color: var(--ok); font-weight: 600; } 
+.log-area .er { color: var(--danger); font-weight: 600; } 
+.log-area .wn { color: var(--text-main); font-weight: 600; }
+
+.progress-bar-wrap { display: none; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 1rem; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #34d399); width: 0%; transition: width 0.3s ease; position: relative;}
+
+/* ── BUTTONS ── */
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; border: none; width: 100%; padding: clamp(0.75rem, 2vh, 1rem); border-radius: var(--radius-sm); font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-btn); }
+.btn-primary svg { width: 18px; height: 18px; fill: #fff; }
+.btn-primary:not(:disabled):hover { box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.5); filter: brightness(1.05); }
+.btn-primary:not(:disabled):active { transform: translateY(1px); }
+.btn-primary:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; box-shadow: none; }
+
+.btn-outline { display: flex; align-items: center; justify-content: center; gap: 8px; padding: clamp(0.65rem, 1.8vh, 0.85rem); border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; border: 1px solid var(--border); background: var(--surface); color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.btn-outline svg { width: 16px; height: 16px; flex-shrink: 0; }
+.btn-outline:not(:disabled):hover { border-color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#dl-wav:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+#dl-csv:not(:disabled):hover { border-color: var(--blue); color: var(--blue); }
+
+.btn-outline.success { pointer-events: none; border-color: var(--accent) !important; background: var(--accent-light); color: var(--accent-dark);}
+.btn-outline.success .btn-text, .btn-outline.success svg { display: none; }
+.btn-outline.success::after { content: '✓ Saved Successfully'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 600; animation: fadeIn 0.3s forwards; }
+
+/* ── RESULTS AREA ── */
+#empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); padding: 2rem; gap: 1rem; border: 1px dashed var(--border); border-radius: var(--radius-md); background: var(--surface-hover); }
+[data-theme="dark"] #empty-state { background: #000000; }
+#empty-state svg { width: 44px; height: 44px; opacity: 0.5; }
+#empty-state p { font-size: 15px; font-weight: 400; max-width: 280px; line-height: 1.6; }
+
+#results-content { display: none; flex-direction: column; flex: 1; min-height: 0; }
+.marker-summary { font-size: 14px; color: var(--text-main); font-weight: 600; margin-bottom: 1rem; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+.badge { background: var(--surface-hover); border: 1px solid var(--border); padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; color: var(--text-main); }
+
+.table-scroll { flex: 1; min-height: 0; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; background: var(--surface); }
+.table-scroll-inner { overflow-y: auto; flex: 1; }
+.table-scroll-inner::-webkit-scrollbar { width: 6px; } .table-scroll-inner::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 99px; }
+
+.mtable { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mtable thead { position: sticky; top: 0; z-index: 1; background: var(--surface-hover); backdrop-filter: blur(10px); }
+.mtable th { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); letter-spacing: 0.05em;}
+.mtable td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.mtable tbody tr:last-child td { border-bottom: none; }
+.mtable tbody tr:hover td { background: var(--surface-hover); }
+.td-num { color: var(--text-faint); font-family: 'JetBrains Mono',monospace; width: 40px; font-size: 13px;}
+.td-name { font-weight: 500; color: var(--text-main); }
+.td-start { font-family: 'JetBrains Mono',monospace; font-size: 13px; color: var(--text-main); font-weight: 500;}
+
+.export-bar { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.5rem, 1.5vw, 1rem); padding-top: clamp(0.5rem, 1.2vh, 1rem); border-top: 1px solid var(--border); flex-shrink: 0; margin-top: clamp(0.5rem, 1.2vh, 1rem); }
+
+/* ── FOOTER ── */
+.footer { padding: 1rem; text-align: center; font-size: 13px; color: var(--text-muted); flex-shrink: 0; position: relative; z-index: 10;}
+.footer-credit span { color: var(--text-main); font-weight: 600; }
+.footer-heart { color: var(--danger); display: inline-block; animation: heartbeat 2s infinite; font-size: 12px;}
+@keyframes heartbeat { 0%, 40%, 100% { transform: scale(1); } 20%, 60% { transform: scale(1.25); } }
+
+/* ── SUPPORT MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; padding: 1rem; }
+.modal-overlay.active { display: flex; opacity: 1; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: var(--shadow-float); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.modal-overlay.active .modal { transform: translateY(0); }
+.modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+.close-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s; line-height: 1;}
+.close-btn:hover { color: var(--danger); }
+.modal-body { padding: 2rem; overflow-y: auto; color: var(--text-muted); font-size: 14px; display: flex; flex-direction: column; gap: 1.5rem; }
+.modal-body h3 { color: var(--text-main); font-size: 15px; font-weight: 600; margin-bottom: 0.5rem; }
+.modal-body p { line-height: 1.6; }
+.modal-body ul { list-style-type: disc; padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.modal-body li strong { color: var(--text-main); }
+
+
+/* ══════════════════════════════════════════════════════════════
+   PRO FULLSCREEN WAVEFORM MODAL (AUDITION EXACT REPLICA)
+══════════════════════════════════════════════════════════════ */
+.fw-modal {
+  position: fixed; inset: 0; z-index: 10000; background: #0c0c0e; /* Audition extremely dark backdrop */
+  display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s;
+  color: #a1a1aa; font-family: 'Inter', sans-serif;
+  user-select: none; 
+}
+.fw-modal.active { display: flex; opacity: 1; }
+.fw-header {
+  height: 52px; background: #18181b; border-bottom: 1px solid #27272a; 
+  display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 10;
+}
+.fw-title-wrap { display: flex; align-items: center; gap: 12px; }
+.fw-title { color: #f8fafc; font-weight: 600; font-size: 14px; font-family: 'JetBrains Mono', monospace; }
+.fw-badge { background: rgba(66, 245, 176, 0.15); color: #42f5b0; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid rgba(66, 245, 176, 0.3); }
+
+/* Edit Tools Toolbar */
+.fw-tools { display: flex; gap: 8px; margin-left: auto; margin-right: 20px; }
+.fw-tool-btn { background: #27272a; border: 1px solid #3f3f46; color: #e4e4e7; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
+.fw-tool-btn:hover { background: #3f3f46; color: #fff; border-color: #52525b; }
+.fw-tool-btn:active { transform: scale(0.95); }
+
+.fw-close { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #a1a1aa; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: 0.2s; }
+.fw-close:hover { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
+
+/* -- 1. Audition Top Overview Minimap -- */
+.fw-minimap {
+  height: 40px; background: #000; border-bottom: 1px solid #27272a; flex-shrink: 0; position: relative; cursor: pointer;
+}
+.fw-minimap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* -- 2. Audition Timeline Ruler -- */
+.fw-ruler { height: 28px; background: #1a1a1c; border-bottom: 1px solid #27272a; flex-shrink: 0; position: relative; cursor: ew-resize; }
+.fw-playhead-handle { position: absolute; top: 0; left: 0; width: 14px; height: 14px; margin-left: -7px; cursor: ew-resize; z-index: 20; display: none; }
+
+/* Dynamic Theme Playhead styling for Small viewer SVG handle (Not Pro Viewer) */
+.ph-path { fill: #0078D7; transition: fill 0.3s; }
+[data-theme="dark"] .ph-path { fill: #0078D7; }
+
+/* -- 3. Audition Body with Green Faint Grid -- */
+.fw-body { 
+  flex: 1; position: relative; background: #000000; overflow: hidden; 
+  cursor: text; /* Native I-Beam cursor by default */
+}
+.fw-body canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.fw-footer {
+  height: 64px; background: #18181b; border-top: 1px solid #27272a;
+  display: flex; align-items: center; padding: 0 2rem; gap: 1.5rem; flex-shrink: 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.5); z-index: 10;
+}
+.fw-play-btn { width: 40px; height: 40px; border-radius: 50%; background: #42f5b0; border: none; color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(66, 245, 176, 0.3); }
+.fw-play-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+.fw-play-btn svg { width: 16px; height: 16px; fill: currentColor; margin-left: 2px; }
+.fw-play-btn.playing svg { margin-left: 0; }
+.fw-time { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #fff; font-weight: 500; background: #000; padding: 6px 12px; border-radius: 6px; border: 1px solid #27272a; }
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+
+/* Tablet & below (≤999px): stacked, naturally scrolling */
+@media (max-width: 999px) {
+  body, html { height: auto !important; overflow: auto; }
+  .container {
+    height: auto; display: flex; flex-direction: column;
+    padding: clamp(0.75rem, 2.5vw, 1.5rem);
+    gap: clamp(0.75rem, 2.5vw, 1.5rem);
+  }
+  .card { min-height: auto; height: auto; }
+  #waveform-wrap { flex: none; min-height: clamp(90px, 18vw, 160px); }
+  .table-scroll { min-height: clamp(220px, 35vh, 380px); }
+  .fw-tools { display: none; }
+}
+
+/* Small phone (≤520px): single-column grids */
+@media (max-width: 520px) {
+  .settings-grid, .export-bar { grid-template-columns: 1fr; }
+}
+
+/* Tiny phone (≤380px): compact nav */
+@media (max-width: 380px) {
+  .topnav { height: auto; padding: 0.6rem 0.85rem; flex-wrap: wrap; gap: 0.5rem; }
+  .theme-toggle-label { display: none; }
+}
+
+/* Large desktop (≥1400px): generous spacing */
+@media (min-width: 1400px) {
+  .left-body, .right-body { padding: 1.5rem 2rem; gap: 1rem; }
+  .card-header { padding: 1rem 1.5rem; }
+  .container { gap: 2.5rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="ambient-bg"></div>
+<div class="ambient-bg-2"></div>
+
+<nav class="topnav animate-1">
+  <a class="logo" href="#">
+    <div class="logo-icon"><svg viewBox="0 0 20 20"><path d="M3 10C3 6.13 6.13 3 10 3s7 3.13 7 7-3.13 7-7 7-7-3.13-7-7zm7-4a1 1 0 00-1 1v2.59L7.71 7.3a1 1 0 00-1.41 1.41l2.99 3a1 1 0 001.41 0l3-3a1 1 0 10-1.41-1.41L11 9.59V7a1 1 0 00-1-1z"/></svg></div>
+    VerseMarking 
+  </a>
+  <div class="nav-right">
+    <button class="theme-toggle" id="support-btn">❓ Support</button>
+    <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
+  </div>
+</nav>
+
+<header class="hero hero-compact animate-1">
+  <h1>Auto-detect Verse Markers
+in  <span class="text-gradient">WAV files</span></h1>
+  <p>Upload your audio, configure thresholds, and instantly export precision-marked data.</p>
+</header>
+
+<div class="container">
+  
+  <div class="card animate-2">
+    <div class="card-header">
+      <div class="card-icon">1</div>
+      <div class="card-title">Configuration</div>
+    </div>
+    <div class="left-body">
+      
+      <div id="drop-zone">
+        <input type="file" id="file-input" accept=".wav,audio/wav">
+        <div class="wave-icon"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
+        <div class="drop-title">Drop your WAV file here</div>
+        <div class="drop-hint">or click to browse from your computer</div>
+      </div>
+
+      <div class="file-meta" id="file-meta">
+        <button id="play-btn" class="play-btn" title="Play/Pause Audio">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="file-details">
+          <span class="fl-name" id="fl-name">—</span>
+          <span class="fl-info" id="fl-info"></span>
+        </div>
+        <button id="clear-btn">Remove</button>
+      </div>
+
+      <div id="waveform-wrap" title="Shift+Drag to select region. Click and drag markers.">
+        <canvas id="waveform"></canvas>
+        <canvas id="wave-overlay"></canvas>
+        <button id="open-full-btn" class="open-full-btn" title="Open Pro Waveform Viewer">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        </button>
+      </div>
+
+      <div class="settings-grid">
+        
+        <label class="field-label">
+          <span>Testament</span>
+          <select id="bible-testament">
+            <option value="">-- Testament --</option>
+            <option value="Old Testament">Old Testament</option>
+            <option value="New Testament">New Testament</option>
+          </select>
+        </label>
+
+        <label class="field-label">
+          <span>Bible Book</span>
+          <select id="bible-book" style="display:none" disabled aria-hidden="true">
+            <option value="">-- Book --</option>
+          </select>
+          <div class="cdd-wrap is-disabled" id="book-cdd">
+            <div class="cdd-trigger" id="book-cdd-trigger"
+                 tabindex="-1" role="combobox"
+                 aria-haspopup="listbox" aria-expanded="false"
+                 aria-controls="book-cdd-list">
+              <span class="cdd-value" id="book-cdd-value">-- Book --</span>
+              <svg class="cdd-arrow" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </div>
+            <div class="cdd-list" id="book-cdd-list" role="listbox" aria-label="Bible Book"></div>
+          </div>
+        </label>
+        
+        <label class="field-label">
+          <span>Chapter</span>
+          <select id="bible-chapter" style="display:none" disabled aria-hidden="true">
+            <option value="">-- Chapter --</option>
+          </select>
+          <div class="cdd-wrap is-disabled" id="chapter-cdd">
+            <div class="cdd-trigger" id="chapter-cdd-trigger"
+                 tabindex="-1" role="combobox"
+                 aria-haspopup="listbox" aria-expanded="false"
+                 aria-controls="chapter-cdd-list">
+              <span class="cdd-value" id="chapter-cdd-value">-- Chapter --</span>
+              <svg class="cdd-arrow" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </div>
+            <div class="cdd-list" id="chapter-cdd-list" role="listbox" aria-label="Chapter"></div>
+          </div>
+        </label>
+
+        <label class="field-label"><span>Number of Verses</span><input type="number" id="num-verses" min="1" max="200" placeholder="e.g. 31"></label>
+        
+        <label class="field-label"><span>Min Silence (sec)</span><input type="number" id="min-silence" value="1.0" min="0.2" max="5" step="0.1"></label>
+        <input type="hidden" id="threshold" value="0.005">
+        
+        <div class="field-label">
+          <span style="visibility: hidden; user-select: none;">Options</span>
+          <details class="more-settings" id="more-settings-details">
+            <summary>More Settings</summary>
+            <div class="more-settings-content">
+              
+              <label class="field-label"><span>Chapter Label</span><input type="text" id="chapter-label" value="Chapter Title" readonly disabled></label>
+              
+              <label class="field-label"><span>Tail Silence (sec)</span><input type="number" id="tail-secs" value="2" min="0" max="10" step="0.5"></label>
+              
+              <label class="toggle-group" for="append-chk">
+                <span class="toggle-label-text">Append digital silence</span>
+                <div class="toggle-switch"><input type="checkbox" id="append-chk" checked><div class="toggle-track"></div></div>
+              </label>
+              
+              <div id="tail-note"></div>
+
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="exec-zone">
+        <div class="log-area" id="log"><span class="ts">[System]</span> Awaiting audio file upload...</div>
+        <div class="progress-bar-wrap" id="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+        <button class="btn-primary" id="process-btn" disabled>
+          <svg viewBox="0 0 24 24"><path d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z"/></svg>
+          <span class="btn-text">Run Detection Engine</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card animate-3">
+    <div class="card-header">
+      <div class="card-icon">2</div>
+      <div class="card-title">Results & Export</div>
+    </div>
+    <div class="right-body">
+      
+      <div id="empty-state">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+        <p>No marker data available. Configure parameters on the left and run detection.</p>
+      </div>
+
+      <div id="results-content">
+        <div class="marker-summary">
+          Data Points Extracted <span class="badge" id="marker-count">0</span> 
+        </div>
+        <div class="table-scroll">
+          <div class="table-scroll-inner">
+            <table class="mtable">
+              <thead><tr><th class="td-num">#</th><th>Cue Name</th><th>Start Position</th></tr></thead>
+              <tbody id="markers-body"></tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="export-bar">
+          <button class="btn-outline" id="dl-wav" disabled>
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 16.5a.75.75 0 01-.53-.22l-6-6a.75.75 0 011.06-1.06L11.25 13.94V4.5a.75.75 0 011.5 0v9.44l4.72-4.72a.75.75 0 111.06 1.06l-6 6a.75.75 0 01-.53.22zM3.75 19.5a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z"/></svg>
+            <span class="btn-text">Save Marked WAV</span>
+          </button>
+          <button class="btn-outline" id="dl-csv" disabled>
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 16.5a.75.75 0 01-.53-.22l-6-6a.75.75 0 011.06-1.06L11.25 13.94V4.5a.75.75 0 011.5 0v9.44l4.72-4.72a.75.75 0 111.06 1.06l-6 6a.75.75 0 01-.53.22zM3.75 19.5a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z"/></svg>
+            <span class="btn-text">Save Audition CSV</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="support-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Support & Documentation</div>
+      <button class="close-btn" id="close-modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <h3>About VerseMarking</h3>
+        <p>VerseMarking is a precision audio utility designed to automatically detect and mark silences—such as verses, chapters, or cue points—within spoken-word audio files. Built entirely in your browser, it guarantees complete privacy. Your audio is never uploaded to an external server; everything is processed safely and locally on your machine.</p>
+      </div>
+      <div>
+        <h3>How it Works</h3>
+        <p>Our detection engine rapidly scans the audio waveform's amplitude against an internal volume threshold. When the audio drops below this threshold for the uninterrupted duration specified in your Min Silence (sec) setting, the system flags it as a break and drops a precision marker directly in the center of that gap.</p>
+      </div>
+<div>
+    <h3>Important Instructions</h3>
+    <ul>
+        <li><strong>Verse Gaps:</strong> Maintain exactly <code>1 second</code> gap between each verse.</li>
+        <li><strong>No Gaps:</strong> Do not add any <code>1-second</code> gap within a verse, as the application will not function correctly.</li>
+        <li><strong>Tail Trim:</strong> Trim the tail in <code>Logic Pro</code> so the total gap remains precisely <code>2 seconds</code>.</li>
+    </ul>
+</div>
+      <div>
+        <h3>Common Issues</h3>
+        <ul>
+          <li><strong>Audio file won't load or process:</strong> Make sure your file is a standard uncompressed PCM <code>.wav</code> file.</li>
+          <li><strong>Incorrect Verse Marking:</strong> The system currently only supports audio files with a <strong>48kHz (48000Hz) sample rate</strong>. Ensure your DAW export settings match this requirement.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="fw-modal" id="fw-modal">
+  <div class="fw-header">
+    <div class="fw-title-wrap">
+      <div class="fw-title" id="fw-title">Waveform View</div>
+      <div class="fw-badge">Pro Editor</div>
+    </div>
+    
+    <div class="fw-tools">
+      <button class="fw-tool-btn" id="tool-undo" title="Undo (Ctrl+Z)">↩️ Undo</button>
+      <button class="fw-tool-btn" id="tool-cut" title="Cut (Ctrl+X)">✂️ Cut</button>
+      <button class="fw-tool-btn" id="tool-copy" title="Copy (Ctrl+C)">📄 Copy</button>
+      <button class="fw-tool-btn" id="tool-paste" title="Paste (Ctrl+V)">📋 Paste</button>
+      <button class="fw-tool-btn" id="tool-del" title="Delete (Del)">🗑️ Del</button>
+    </div>
+
+    <button class="fw-close" id="fw-close">&times;</button>
+  </div>
+  
+  <div class="fw-minimap" id="fw-minimap">
+    <canvas id="fw-minimap-canvas"></canvas>
+    <canvas id="fw-minimap-overlay"></canvas>
+  </div>
+
+  <div class="fw-ruler" id="fw-ruler">
+    <canvas id="fw-ruler-canvas"></canvas>
+    <div id="fw-playhead-handle" class="fw-playhead-handle">
+      <svg width="14" height="14" viewBox="0 0 14 14">
+        <path d="M0,0 L14,0 L14,8 L7,14 L0,8 Z" fill="#0078D7" />
+      </svg>
+    </div>
+  </div>
+  
+  <div class="fw-body" id="fw-body">
+    <canvas id="fw-canvas"></canvas>
+    <canvas id="fw-overlay"></canvas>
+  </div>
+  
+  <div class="fw-footer">
+     <button id="fw-play-btn" class="fw-play-btn" title="Play/Pause Audio">
+       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+     </button>
+     <div class="fw-time" id="fw-time">0:00.000 / 0:00.000</div>
+  </div>
+</div>
+
+<footer class="footer animate-3">
+  <div class="footer-credit">Created with <span class="footer-heart">♥</span> by <span>Steven Manchala</span></div>
+</footer>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ── BIBLE DATABASE ── */
+const bibleData = {
+  "Genesis": [31, 25, 24, 26, 32, 22, 24, 22, 29, 32, 32, 20, 18, 24, 21, 16, 27, 33, 38, 18, 34, 24, 20, 67, 34, 35, 46, 22, 35, 43, 55, 32, 20, 31, 29, 43, 36, 30, 23, 23, 57, 38, 34, 34, 28, 34, 31, 22, 33, 26],
+  "Exodus": [22, 25, 22, 31, 23, 30, 25, 32, 35, 29, 10, 51, 22, 31, 27, 36, 16, 27, 25, 26, 36, 31, 33, 18, 40, 37, 21, 43, 46, 38, 18, 35, 23, 35, 35, 38, 29, 31, 43, 38],
+  "Leviticus": [17, 16, 17, 35, 19, 30, 38, 36, 24, 20, 47, 8, 59, 57, 33, 34, 16, 30, 37, 27, 24, 33, 44, 23, 55, 46, 34],
+  "Numbers": [54, 34, 51, 49, 31, 27, 89, 26, 23, 36, 35, 16, 33, 45, 41, 50, 13, 32, 22, 29, 35, 41, 30, 25, 18, 65, 23, 31, 40, 16, 54, 42, 56, 29, 34, 13],
+  "Deuteronomy": [46, 37, 29, 49, 33, 25, 26, 20, 29, 22, 32, 32, 18, 29, 23, 22, 20, 22, 21, 20, 23, 30, 25, 22, 19, 19, 26, 68, 29, 20, 30, 52, 29, 12],
+  "Joshua": [18, 24, 17, 24, 15, 27, 26, 35, 27, 43, 23, 24, 33, 15, 63, 10, 18, 28, 51, 9, 45, 34, 16, 33],
+  "Judges": [36, 23, 31, 24, 31, 40, 25, 35, 57, 18, 40, 15, 25, 20, 20, 31, 13, 31, 30, 48, 25],
+  "Ruth": [22, 23, 18, 22],
+  "1 Samuel": [28, 36, 21, 22, 12, 21, 17, 22, 27, 27, 15, 25, 23, 52, 35, 23, 58, 30, 24, 42, 15, 23, 29, 22, 44, 25, 12, 25, 11, 31, 13],
+  "2 Samuel": [27, 32, 39, 12, 25, 23, 29, 18, 13, 19, 27, 31, 39, 33, 37, 23, 29, 33, 43, 26, 22, 51, 39, 25],
+  "1 Kings": [53, 46, 28, 34, 18, 38, 51, 66, 28, 29, 43, 33, 34, 31, 34, 34, 24, 46, 21, 43, 29, 53],
+  "2 Kings": [18, 25, 27, 44, 27, 33, 20, 29, 37, 36, 21, 21, 25, 29, 38, 20, 41, 37, 37, 21, 26, 20, 37, 20, 30],
+  "1 Chronicles": [54, 55, 24, 43, 26, 81, 40, 40, 44, 14, 47, 40, 14, 17, 29, 43, 27, 17, 19, 8, 30, 19, 32, 31, 31, 32, 34, 21, 30],
+  "2 Chronicles": [17, 18, 17, 22, 14, 42, 22, 18, 31, 19, 23, 16, 22, 15, 19, 14, 19, 34, 11, 37, 20, 12, 21, 27, 28, 23, 9, 27, 36, 27, 21, 33, 25, 33, 27, 23],
+  "Ezra": [11, 70, 13, 24, 17, 22, 28, 36, 15, 44],
+  "Nehemiah": [11, 20, 32, 23, 19, 19, 73, 18, 38, 39, 36, 47, 31],
+  "Esther": [22, 23, 15, 17, 14, 14, 10, 17, 32, 3],
+  "Job": [22, 13, 26, 21, 27, 30, 21, 22, 35, 22, 20, 25, 28, 22, 35, 22, 16, 21, 29, 29, 34, 30, 17, 25, 6, 14, 23, 28, 25, 31, 40, 22, 33, 37, 16, 33, 24, 41, 30, 24, 34, 17],
+  "Psalms": [6, 12, 8, 9, 12, 10, 17, 9, 20, 18, 7, 8, 6, 7, 5, 11, 15, 50, 14, 9, 13, 31, 6, 10, 22, 12, 14, 9, 11, 12, 24, 11, 22, 22, 28, 12, 40, 22, 13, 17, 13, 11, 5, 26, 17, 11, 9, 14, 20, 23, 19, 9, 6, 7, 23, 13, 11, 11, 17, 12, 8, 12, 11, 10, 13, 20, 7, 35, 36, 5, 24, 20, 28, 23, 10, 12, 20, 72, 13, 19, 16, 8, 18, 12, 13, 17, 7, 18, 52, 17, 16, 15, 5, 23, 11, 13, 12, 9, 9, 5, 8, 28, 22, 35, 45, 48, 43, 13, 31, 7, 10, 10, 9, 8, 18, 19, 2, 29, 176, 7, 8, 9, 4, 8, 5, 6, 5, 6, 8, 8, 3, 18, 3, 3, 21, 26, 9, 8, 24, 13, 10, 7, 12, 15, 21, 10, 20, 14, 9, 6],
+  "Proverbs": [33, 22, 35, 27, 23, 35, 27, 36, 18, 32, 31, 28, 25, 35, 33, 33, 28, 24, 29, 30, 31, 29, 35, 34, 28, 28, 27, 28, 27, 33, 31],
+  "Ecclesiastes": [18, 26, 22, 16, 20, 12, 29, 17, 18, 20, 10, 14],
+  "Song of Solomon": [17, 17, 11, 16, 16, 13, 13, 14],
+  "Isaiah": [31, 22, 26, 6, 30, 13, 25, 22, 21, 34, 16, 6, 22, 32, 9, 14, 14, 7, 25, 6, 17, 25, 18, 23, 12, 21, 13, 29, 24, 33, 9, 20, 24, 17, 10, 22, 38, 22, 8, 31, 29, 25, 28, 28, 25, 13, 15, 22, 26, 11, 23, 15, 12, 17, 13, 12, 21, 14, 21, 22, 11, 12, 19, 12, 25, 24],
+  "Jeremiah": [19, 37, 25, 31, 31, 30, 34, 22, 26, 25, 23, 17, 27, 22, 21, 21, 27, 23, 15, 18, 14, 30, 40, 10, 38, 24, 22, 17, 32, 24, 40, 44, 26, 22, 19, 32, 21, 28, 18, 16, 18, 22, 13, 30, 5, 28, 7, 47, 39, 46, 64, 34],
+  "Lamentations": [22, 22, 66, 22, 22],
+  "Ezekiel": [28, 10, 27, 17, 17, 14, 27, 18, 11, 22, 25, 28, 23, 23, 8, 63, 24, 32, 14, 49, 32, 31, 49, 27, 17, 21, 36, 26, 21, 26, 18, 32, 33, 31, 15, 38, 28, 23, 29, 49, 26, 20, 27, 31, 25, 24, 23, 35],
+  "Daniel": [21, 49, 30, 37, 31, 28, 28, 27, 27, 21, 45, 13],
+  "Hosea": [11, 23, 5, 19, 15, 11, 16, 14, 17, 15, 12, 14, 16, 9],
+  "Joel": [20, 32, 21],
+  "Amos": [15, 16, 15, 13, 27, 14, 17, 14, 15],
+  "Obadiah": [21],
+  "Jonah": [17, 10, 10, 11],
+  "Micah": [16, 13, 12, 13, 15, 16, 20],
+  "Nahum": [15, 13, 19],
+  "Habakkuk": [17, 20, 19],
+  "Zephaniah": [18, 15, 20],
+  "Haggai": [15, 23],
+  "Zechariah": [21, 13, 10, 14, 11, 15, 14, 23, 17, 12, 17, 14, 9, 21],
+  "Malachi": [14, 17, 18, 6],
+  "Matthew": [25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36, 39, 28, 27, 35, 30, 34, 46, 46, 39, 51, 46, 75, 66, 20],
+  "Mark": [45, 28, 35, 41, 43, 53, 37, 38, 50, 52, 33, 44, 37, 72, 47, 20],
+  "Luke": [80, 52, 38, 44, 39, 49, 50, 56, 62, 42, 54, 59, 35, 35, 32, 31, 37, 43, 48, 47, 38, 71, 56, 53],
+  "John": [51, 25, 36, 54, 47, 71, 53, 59, 41, 42, 57, 50, 38, 31, 27, 33, 26, 40, 42, 31, 25],
+  "Acts": [26, 47, 26, 37, 42, 15, 60, 40, 43, 48, 30, 25, 52, 28, 41, 40, 34, 28, 41, 38, 40, 30, 35, 27, 27, 32, 44, 31],
+  "Romans": [32, 29, 31, 25, 21, 23, 25, 39, 33, 21, 36, 21, 14, 23, 33, 27],
+  "1 Corinthians": [31, 16, 23, 21, 13, 20, 40, 13, 27, 33, 34, 31, 13, 40, 58, 24],
+  "2 Corinthians": [24, 17, 18, 18, 21, 18, 16, 24, 15, 18, 33, 21, 14],
+  "Galatians": [24, 21, 29, 31, 26, 18],
+  "Ephesians": [23, 22, 21, 32, 33, 24],
+  "Philippians": [30, 30, 21, 23],
+  "Colossians": [29, 23, 25, 18],
+  "1 Thessalonians": [10, 20, 13, 18, 28],
+  "2 Thessalonians": [12, 17, 18],
+  "1 Timothy": [20, 15, 16, 16, 25, 21],
+  "2 Timothy": [18, 26, 17, 22],
+  "Titus": [16, 15, 15],
+  "Philemon": [25],
+  "Hebrews": [14, 18, 19, 16, 14, 20, 28, 13, 28, 39, 40, 29, 25],
+  "James": [27, 26, 18, 17, 20],
+  "1 Peter": [25, 25, 22, 19, 14],
+  "2 Peter": [21, 22, 18],
+  "1 John": [10, 29, 24, 21, 21],
+  "2 John": [13],
+  "3 John": [14],
+  "Jude": [25],
+  "Revelation": [20, 29, 22, 11, 14, 17, 17, 13, 21, 11, 19, 17, 18, 20, 8, 21, 18, 24, 21, 15, 27, 21]
+};
+
+const allBooks = Object.keys(bibleData);
+const testaments = { "Old Testament": allBooks.slice(0, 39), "New Testament": allBooks.slice(39) };
+
+/* ── DOM BINDINGS ── */
+const testamentSelect = $('bible-testament');
+const bookSelect      = $('bible-book');    
+const chapSelect      = $('bible-chapter'); 
+const numVerses       = $('num-verses');
+
+/* ══════════════════════════════════════════════════════════════
+   CUSTOM DROPDOWN ENGINE 
+══════════════════════════════════════════════════════════════ */
+function createCDD(wrapId, triggerId, valueId, listId, nativeId, defaultLabel) {
+  const wrap      = document.getElementById(wrapId);
+  const trigger   = document.getElementById(triggerId);
+  const valEl     = document.getElementById(valueId);
+  const list      = document.getElementById(listId);
+  const nativeSel = document.getElementById(nativeId);
+
+  let _opts = [], _selIdx = -1, _focIdx = -1, _open = false;
+
+  function renderItems() {
+    list.innerHTML = '';
+    nativeSel.innerHTML = `<option value="">-- ${defaultLabel} --</option>`;
+
+    _opts.forEach((opt, i) => {
+      const el = document.createElement('div');
+      el.className = 'cdd-option';
+      el.textContent = opt.text;
+      el.setAttribute('role', 'option');
+      el.setAttribute('id', `${wrapId}-opt-${i}`);
+      el.addEventListener('mouseenter', () => { _focIdx = i; applyFocus(); });
+      el.addEventListener('mouseleave', () => { _focIdx = -1; applyFocus(); });
+      el.addEventListener('mousedown', (e) => { e.preventDefault(); }); 
+      el.addEventListener('click', () => { pick(i); close(); });
+      list.appendChild(el);
+
+      const no = document.createElement('option');
+      no.value = opt.value;
+      no.textContent = opt.text;
+      if (opt.verses !== undefined) no.dataset.verses = opt.verses;
+      nativeSel.appendChild(no);
+    });
+  }
+
+  function applySelected() {
+    Array.from(list.children).forEach((el, i) => {
+      el.classList.toggle('is-selected', i === _selIdx);
+      el.setAttribute('aria-selected', i === _selIdx);
+    });
+  }
+
+  function applyFocus() {
+    Array.from(list.children).forEach((el, i) => {
+      el.classList.toggle('is-focused', i === _focIdx && i !== _selIdx);
+    });
+    if (_focIdx >= 0 && list.children[_focIdx]) {
+      list.children[_focIdx].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function pick(idx) {
+    if (idx < 0 || idx >= _opts.length) return;
+    _selIdx = idx;
+    valEl.textContent = _opts[idx].text;
+    nativeSel.value = _opts[idx].value;
+    nativeSel.dispatchEvent(new Event('change'));
+    trigger.setAttribute('aria-activedescendant', `${wrapId}-opt-${idx}`);
+    applySelected();
+    saveSettings(); 
+  }
+
+  function reposition() {
+    const r     = trigger.getBoundingClientRect();
+    const vpH   = window.innerHeight;
+    const maxH  = Math.min(340, vpH * 0.50);
+    const below = vpH - r.bottom - 6;
+    const above = r.top - 6;
+    const openUp = below < maxH && above > below;
+
+    list.style.width = r.width + 'px';
+    list.style.left  = r.left  + 'px';
+
+    if (openUp) {
+      list.classList.add('opens-up');
+      list.style.top       = '';
+      list.style.bottom    = (vpH - r.top + 4) + 'px';
+      list.style.maxHeight = Math.min(maxH, above) + 'px';
+    } else {
+      list.classList.remove('opens-up');
+      list.style.top       = (r.bottom + 4) + 'px';
+      list.style.bottom    = '';
+      list.style.maxHeight = Math.min(maxH, below) + 'px';
+    }
+  }
+
+  function open() {
+    if (wrap.classList.contains('is-disabled') || _opts.length === 0) return;
+    _open = true; reposition();
+    wrap.classList.add('is-open'); trigger.setAttribute('aria-expanded', 'true');
+
+    _focIdx = _selIdx; applyFocus();
+    if (_selIdx >= 0 && list.children[_selIdx]) { requestAnimationFrame(() => list.children[_selIdx].scrollIntoView({ block: 'nearest' })); }
+
+    document.addEventListener('click', onOutside, { capture: true });
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    document.querySelector('.left-body')?.addEventListener('scroll', onScroll);
+  }
+
+  function close() {
+    if (!_open) return;
+    _open = false; wrap.classList.remove('is-open'); trigger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onOutside, { capture: true });
+    document.removeEventListener('keydown', onKey);
+    window.removeEventListener('resize', onResize);
+    document.querySelector('.left-body')?.removeEventListener('scroll', onScroll);
+    trigger.focus();
+  }
+
+  function onOutside(e) { if (!wrap.contains(e.target) && !list.contains(e.target)) close(); }
+  function onResize() { if (_open) reposition(); }
+  function onScroll() { if (_open) close(); }
+
+  function onKey(e) {
+    if (!_open) return;
+    switch (e.key) {
+      case 'ArrowDown': e.preventDefault(); _focIdx = Math.min(_focIdx + 1, _opts.length - 1); applyFocus(); break;
+      case 'ArrowUp': e.preventDefault(); _focIdx = Math.max(_focIdx - 1, 0); applyFocus(); break;
+      case 'Home': e.preventDefault(); _focIdx = 0; applyFocus(); break;
+      case 'End': e.preventDefault(); _focIdx = _opts.length - 1; applyFocus(); break;
+      case 'Enter': case ' ': e.preventDefault(); if (_focIdx >= 0) { pick(_focIdx); close(); } break;
+      case 'Escape': case 'Tab': close(); break;
+      default: {
+        const ch = e.key.length === 1 ? e.key.toLowerCase() : null;
+        if (ch) {
+          const start = _focIdx >= 0 ? _focIdx + 1 : 0;
+          let idx = _opts.findIndex((o, i) => i >= start && o.text.toLowerCase().startsWith(ch));
+          if (idx === -1) idx = _opts.findIndex(o => o.text.toLowerCase().startsWith(ch));
+          if (idx >= 0) { _focIdx = idx; applyFocus(); }
+        }
+      }
+    }
+  }
+
+  trigger.addEventListener('click', (e) => { e.stopPropagation(); _open ? close() : open(); });
+  trigger.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); if (!_open) open(); } });
+
+  return {
+    setOptions(opts) {
+      _opts = opts; _selIdx = -1; _focIdx = -1;
+      valEl.textContent = `-- ${defaultLabel} --`;
+      trigger.setAttribute('tabindex', opts.length ? '0' : '-1');
+      wrap.classList.toggle('is-disabled', opts.length === 0);
+      renderItems(); if (_open) close();
+    },
+    syncFromNative() {
+      const val = nativeSel.value; if (!val) return;
+      const idx = _opts.findIndex(o => o.value === val);
+      if (idx >= 0) { _selIdx = idx; valEl.textContent = _opts[idx].text; applySelected(); }
+    }
+  };
+}
+
+const bdd = createCDD('book-cdd', 'book-cdd-trigger', 'book-cdd-value', 'book-cdd-list', 'bible-book', 'Book');
+const cdd = createCDD('chapter-cdd', 'chapter-cdd-trigger', 'chapter-cdd-value', 'chapter-cdd-list', 'bible-chapter', 'Chapter');
+
+testamentSelect.addEventListener('change', () => {
+  const test = testamentSelect.value; cdd.setOptions([]); 
+  if (test && testaments[test]) { bdd.setOptions(testaments[test].map(book => ({ value: book, text: book }))); } else { bdd.setOptions([]); }
+});
+
+bookSelect.addEventListener('change', () => {
+  const book = bookSelect.value; chapSelect.innerHTML = '<option value="">-- Chapter --</option>'; chapSelect.value = '';
+  if (book && bibleData[book]) { cdd.setOptions(bibleData[book].map((verses, idx) => ({ value: String(idx + 1), text: `Chapter ${idx + 1}`, verses }))); } else { cdd.setOptions([]); }
+});
+
+chapSelect.addEventListener('change', () => {
+  const chap = chapSelect.value;
+  if (chap && chapSelect.options[chapSelect.selectedIndex]) { numVerses.value = chapSelect.options[chapSelect.selectedIndex].dataset.verses; }
+});
+
+/* ── SUPPORT MODAL LOGIC ── */
+const modalOverlay = $('support-modal'), supportBtn = $('support-btn'), closeBtn = $('close-modal');
+supportBtn.addEventListener('click', () => { modalOverlay.style.display = 'flex'; setTimeout(() => modalOverlay.classList.add('active'), 10); });
+function closeModal() { modalOverlay.classList.remove('active'); setTimeout(() => modalOverlay.style.display = 'none', 300); }
+closeBtn.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
+
+document.addEventListener('click', (e) => {
+  const details = document.getElementById('more-settings-details');
+  if (details && details.open && !details.contains(e.target)) details.removeAttribute('open');
+});
+
+/* ── MEMORY (SETTINGS SAVING) ── */
+const inputs = ['bible-testament', 'bible-book', 'bible-chapter', 'num-verses', 'min-silence', 'tail-secs', 'append-chk'];
+
+function saveSettings() {
+  const data = {};
+  inputs.forEach(id => { const el = $(id); if (el) data[id] = el.type === 'checkbox' ? el.checked : el.value; });
+  try { localStorage.setItem('vm-settings', JSON.stringify(data)); } catch(e){}
+}
+
+function loadSettings() {
+  try {
+    const data = JSON.parse(localStorage.getItem('vm-settings'));
+    if(data) {
+      if(data['bible-testament']) { $('bible-testament').value = data['bible-testament']; $('bible-testament').dispatchEvent(new Event('change')); }
+      if(data['bible-book']) { $('bible-book').value = data['bible-book']; $('bible-book').dispatchEvent(new Event('change')); bdd.syncFromNative(); }
+      if(data['bible-chapter']) { $('bible-chapter').value = data['bible-chapter']; cdd.syncFromNative(); }
+      
+      inputs.forEach(id => { 
+        if(data[id] !== undefined && !['bible-testament', 'bible-book', 'bible-chapter'].includes(id)) {
+          const el = $(id); if (el) { if (el.type === 'checkbox') el.checked = data[id]; else el.value = data[id]; }
+        }
+      });
+    }
+  } catch(e){}
+}
+
+inputs.forEach(id => { if ($(id)) { $(id).addEventListener('input', saveSettings); $(id).addEventListener('change', saveSettings); }});
+loadSettings();
+
+/* ── THEME ── */
+let isDark = false;
+function applyTheme(dark) {
+  isDark = dark; document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  $('theme-toggle').innerHTML = dark ? '☀️ Light Mode' : '🌙 Dark Mode';
+  try { localStorage.setItem('vm-theme', dark ? 'dark' : 'light'); } catch(e){}
+  if(audioBuffer) { drawWaveform(); if(detectedMarkers.length) drawMarkerOverlay(); }
+}
+$('theme-toggle').addEventListener('click', () => applyTheme(!isDark));
+
+try { const saved = localStorage.getItem('vm-theme'); if(saved === 'dark') applyTheme(true); else applyTheme(false); } catch(e){}
+
+/* ── STATE ── */
+let audioBuffer = null, detectedMarkers = [], rawWavBytes = null, origFileName = "";
+let dlDirWav = null, dlDirCsv = null;
+let audioPlayer = new Audio(), isPlaying = false, animFrame = null;
+
+// Editor State
+let selectionStartSec = null;
+let selectionEndSec = null;
+let isSelecting = false;
+let draggedMarkerIndex = -1;
+let hoveredMarkerIndex = -1;
+let clipboardAudioData = null;
+
+// Undo Stack variables
+let undoStack = [];
+const MAX_UNDO_STEPS = 10;
+
+const dropZone = $('drop-zone'), fileInput = $('file-input');
+const fileMeta = $('file-meta'), clearBtn = $('clear-btn'), waveWrap = $('waveform-wrap');
+const processBtn = $('process-btn'), dlWav = $('dl-wav'), dlCsv = $('dl-csv'), playBtn = $('play-btn');
+const logEl = $('log'), progWrap = $('progress-bar-wrap'), progBar = $('progress-bar');
+const resultsContent = $('results-content'), emptyState = $('empty-state');
+const appendChk = $('append-chk'), tailNote = $('tail-note'), tailSecsInput = $('tail-secs');
+
+function updateTailNote() {
+  const s = parseFloat(tailSecsInput.value) || 2;
+  tailNote.style.display = appendChk.checked ? 'block' : 'none';
+  tailNote.innerHTML = `Adds ${s}s silence to end.`;
+}
+appendChk.addEventListener('change', updateTailNote);
+tailSecsInput.addEventListener('input', updateTailNote);
+updateTailNote();
+
+function log(msg) {
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  logEl.innerHTML = `<span class="ts">[${time}]</span> ${msg}`;
+  const temp = document.createElement('div');
+  temp.innerHTML = msg;
+  logEl.title = `[${time}] ` + (temp.textContent || temp.innerText || "");
+}
+function setProgress(pct) { progBar.style.width = pct + '%'; }
+function fmtTime(sec) {
+  const m = Math.floor(sec/60), s = sec - m*60, ss = Math.floor(s), ms = Math.round((s-ss)*1000);
+  return `${m}:${String(ss).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
+}
+
+function updateMarkerTable() {
+  $('marker-count').textContent = detectedMarkers.length;
+  $('markers-body').innerHTML = detectedMarkers.map((m,i) => `<tr><td class="td-num">${String(i+1).padStart(2,'0')}</td><td class="td-name">${m.name}</td><td class="td-start">${fmtTime(m.center)}</td></tr>`).join('');
+}
+
+
+/* ── UNDO ENGINE ── */
+function saveStateForUndo() {
+  if (!audioBuffer) return;
+  
+  // Create a deep copy of the current audio data
+  const currentData = audioBuffer.getChannelData(0);
+  const dataCopy = new Float32Array(currentData.length);
+  dataCopy.set(currentData);
+  
+  // Create a deep copy of the markers
+  const markersCopy = JSON.parse(JSON.stringify(detectedMarkers));
+  
+  undoStack.push({
+    data: dataCopy,
+    markers: markersCopy,
+    sampleRate: audioBuffer.sampleRate
+  });
+  
+  // Prevent memory overflow
+  if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
+}
+
+async function undoLastAction() {
+  if (undoStack.length === 0) {
+    log('<span class="wn">Nothing to undo.</span>');
+    return;
+  }
+  
+  const lastState = undoStack.pop();
+  
+  // Restore Audio Buffer
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const newBuffer = ctx.createBuffer(1, lastState.data.length, lastState.sampleRate);
+  newBuffer.copyToChannel(lastState.data, 0);
+  audioBuffer = newBuffer;
+  
+  // Restore Markers
+  detectedMarkers = lastState.markers;
+  updateMarkerTable();
+  
+  selectionStartSec = null; selectionEndSec = null; fwHoverSec = null;
+  await syncAudioPlayer();
+  log('<span class="ok">Undo successful.</span>');
+}
+
+// Bind Undo Button
+$('tool-undo').addEventListener('click', undoLastAction);
+
+
+/* ── DESTRUCTIVE AUDIO EDITING ENGINE ── */
+
+function getSelectionSamples() {
+  if (!audioBuffer || selectionStartSec === null || selectionEndSec === null) return null;
+  const rate = audioBuffer.sampleRate;
+  const s1 = Math.min(selectionStartSec, selectionEndSec);
+  const s2 = Math.max(selectionStartSec, selectionEndSec);
+  return { start: Math.floor(s1 * rate), end: Math.floor(s2 * rate), startSec: s1, endSec: s2 };
+}
+
+function copySelection() {
+  const sel = getSelectionSamples();
+  if (!sel || sel.end - sel.start <= 0) return;
+  clipboardAudioData = audioBuffer.getChannelData(0).slice(sel.start, sel.end);
+  log('<span class="ok">Copied ' + (sel.endSec - sel.startSec).toFixed(2) + 's to clipboard.</span>');
+}
+
+async function cutSelection() {
+  copySelection();
+  await deleteSelection();
+}
+
+async function deleteSelection(isInternal = false) {
+  const sel = getSelectionSamples();
+  if (!sel || sel.end - sel.start <= 0) return;
+  
+  if (!isInternal) saveStateForUndo(); // CAPTURE STATE HERE
+  
+  const rate = audioBuffer.sampleRate;
+  const len = sel.end - sel.start;
+  const oldData = audioBuffer.getChannelData(0);
+  const newData = new Float32Array(oldData.length - len);
+  
+  newData.set(oldData.subarray(0, sel.start), 0);
+  newData.set(oldData.subarray(sel.end), sel.start);
+
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const newBuffer = ctx.createBuffer(1, newData.length, rate);
+  newBuffer.copyToChannel(newData, 0);
+  audioBuffer = newBuffer;
+
+  const shiftLen = sel.endSec - sel.startSec;
+  detectedMarkers = detectedMarkers.filter(m => m.center <= sel.startSec || m.center >= sel.endSec);
+  detectedMarkers.forEach(m => { if (m.center > sel.endSec) m.center -= shiftLen; });
+  updateMarkerTable();
+
+  selectionStartSec = null; selectionEndSec = null; fwHoverSec = null;
+  await syncAudioPlayer();
+  if (!isInternal) log('<span class="ok">Deleted selected region.</span>');
+}
+
+async function pasteClipboard() {
+  if (!audioBuffer || !clipboardAudioData) return;
+  
+  saveStateForUndo(); // CAPTURE STATE HERE
+  
+  if (selectionStartSec !== null && selectionStartSec !== selectionEndSec) {
+    await deleteSelection(true);
+  }
+
+  const rate = audioBuffer.sampleRate;
+  const insertSec = fwHoverSec !== null ? fwHoverSec : audioPlayer.currentTime;
+  const insertSample = Math.floor(insertSec * rate);
+
+  const oldData = audioBuffer.getChannelData(0);
+  const newData = new Float32Array(oldData.length + clipboardAudioData.length);
+
+  newData.set(oldData.subarray(0, insertSample), 0);
+  newData.set(clipboardAudioData, insertSample);
+  newData.set(oldData.subarray(insertSample), insertSample + clipboardAudioData.length);
+
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const newBuffer = ctx.createBuffer(1, newData.length, rate);
+  newBuffer.copyToChannel(newData, 0);
+  audioBuffer = newBuffer;
+
+  const pasteLenSec = clipboardAudioData.length / rate;
+  detectedMarkers.forEach(m => { if (m.center >= insertSec) m.center += pasteLenSec; });
+  updateMarkerTable();
+
+  await syncAudioPlayer();
+  log('<span class="ok">Pasted audio from clipboard.</span>');
+}
+
+async function syncAudioPlayer() {
+  const rate = audioBuffer.sampleRate;
+  const data = audioBuffer.getChannelData(0);
+  const blockAlign = 2; // 16-bit mono
+  const byteRate = rate * blockAlign;
+  const dataSize = data.length * 2;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  const writeString = (v, offset, str) => { for (let i = 0; i < str.length; i++) v.setUint8(offset + i, str.charCodeAt(i)); };
+
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // Mono
+  view.setUint32(24, rate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true); // 16-bit
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  let offset = 44;
+  for (let i = 0; i < data.length; i++) {
+    let s = Math.max(-1, Math.min(1, data[i]));
+    s = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    view.setInt16(offset, s, true);
+    offset += 2;
+  }
+
+  rawWavBytes = buffer;
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  const oldTime = audioPlayer.currentTime;
+  audioPlayer.src = URL.createObjectURL(blob);
+  audioPlayer.currentTime = oldTime;
+
+  // Sync Views
+  if (fwViewEnd > audioBuffer.duration) { 
+    const diff = fwViewEnd - fwViewStart;
+    fwViewEnd = audioBuffer.duration;
+    fwViewStart = Math.max(0, fwViewEnd - diff);
+  }
+
+  drawWaveform(); 
+  drawMarkerOverlay();
+  
+  if ($('fw-modal').classList.contains('active')) {
+    drawFWMinimap(); drawFWMinimapOverlay(); drawFWRuler(); drawFWWaveform(); drawFWOverlay(); updateFWTime();
+  }
+}
+
+$('tool-cut').addEventListener('click', cutSelection);
+$('tool-copy').addEventListener('click', copySelection);
+$('tool-paste').addEventListener('click', pasteClipboard);
+$('tool-del').addEventListener('click', deleteSelection);
+
+
+/* ── AUDIO PLAYBACK & GLOBAL SHORTCUTS ── */
+const playIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+function togglePlay() {
+  if(!audioPlayer.src) return;
+  if(isPlaying) { audioPlayer.pause(); } else { audioPlayer.play(); }
+}
+
+playBtn.addEventListener('click', togglePlay);
+$('fw-play-btn').addEventListener('click', togglePlay);
+
+document.addEventListener('keydown', (e) => {
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+
+  // Keyboard Edit Listeners
+  if ((e.ctrlKey || e.metaKey) && e.key === 'c') { e.preventDefault(); copySelection(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'x') { e.preventDefault(); cutSelection(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'v') { e.preventDefault(); pasteClipboard(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undoLastAction(); }
+  if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); deleteSelection(); }
+});
+
+audioPlayer.addEventListener('play', () => { 
+  isPlaying = true; playBtn.innerHTML = pauseIcon; playBtn.classList.add('playing'); 
+  $('fw-play-btn').innerHTML = pauseIcon; $('fw-play-btn').classList.add('playing');
+  loopPlayhead(); 
+});
+audioPlayer.addEventListener('pause', () => { 
+  isPlaying = false; playBtn.innerHTML = playIcon; playBtn.classList.remove('playing'); 
+  $('fw-play-btn').innerHTML = playIcon; $('fw-play-btn').classList.remove('playing');
+  cancelAnimationFrame(animFrame); drawMarkerOverlay(); 
+  if ($('fw-modal').classList.contains('active')) { drawFWOverlay(); updateFWTime(); }
+});
+audioPlayer.addEventListener('ended', () => { 
+  isPlaying = false; playBtn.innerHTML = playIcon; playBtn.classList.remove('playing'); 
+  $('fw-play-btn').innerHTML = playIcon; $('fw-play-btn').classList.remove('playing');
+  cancelAnimationFrame(animFrame); drawMarkerOverlay(); 
+  if ($('fw-modal').classList.contains('active')) { drawFWOverlay(); updateFWTime(); }
+});
+
+function loopPlayhead() {
+  drawMarkerOverlay();
+  if ($('fw-modal').classList.contains('active')) { drawFWOverlay(); updateFWTime(); }
+  if(isPlaying) animFrame = requestAnimationFrame(loopPlayhead);
+}
+
+/* ── UPLOAD ── */
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', e => { if(!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('over'); });
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => { if(fileInput.files[0]) loadFile(fileInput.files[0]); });
+
+clearBtn.addEventListener('click', () => {
+  audioPlayer.pause(); audioPlayer.src = ""; isPlaying = false; cancelAnimationFrame(animFrame);
+  audioBuffer = null; detectedMarkers = []; rawWavBytes = null; fileInput.value = "";
+  undoStack = []; // CLEAR UNDO MEMORY
+  selectionStartSec = null; selectionEndSec = null; draggedMarkerIndex = -1; hoveredMarkerIndex = -1;
+  dropZone.style.display = 'flex'; fileMeta.style.display = 'none'; waveWrap.style.display = 'none';
+  resultsContent.style.display = 'none'; emptyState.style.display = 'flex';
+  processBtn.disabled = true; dlWav.disabled = true; dlCsv.disabled = true;
+  log('Awaiting audio file upload...');
+});
+
+async function loadFile(file) {
+  if (!file.name.toLowerCase().endsWith('.wav')) { log('<span class="er">Error: Strictly requires WAV format.</span>'); return; }
+
+  $('min-silence').value = '1.0'; saveSettings(); 
+
+  origFileName = file.name; $('fl-name').textContent = file.name; $('fl-info').textContent = (file.size/1048576).toFixed(2) + ' MB • WAV';
+  dropZone.style.display = 'none'; fileMeta.style.display = 'flex';
+  
+  log('Loading audio structure to memory...'); progWrap.style.display = 'block'; setProgress(20);
+  
+  const ab = await file.arrayBuffer(); rawWavBytes = ab.slice(0);
+  const blob = new Blob([rawWavBytes], { type: 'audio/wav' });
+  audioPlayer.src = URL.createObjectURL(blob);
+
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    setProgress(50); audioBuffer = await ctx.decodeAudioData(ab); setProgress(100);
+    log(`<span class="ok">System Ready</span> — ${audioBuffer.duration.toFixed(2)}s runtime | ${audioBuffer.sampleRate}Hz`);
+    setTimeout(() => { progWrap.style.display = 'none'; setProgress(0); }, 500);
+    processBtn.disabled = false; dlWav.disabled = true; dlCsv.disabled = true; 
+    waveWrap.style.display = 'block'; 
+    $('fw-title').textContent = file.name;
+    drawWaveform(); drawMarkerOverlay();
+    resultsContent.style.display = 'none'; emptyState.style.display = 'flex';
+  } catch(e) { log('<span class="er">Audio Decode Failed: ' + e.message + '</span>'); progWrap.style.display = 'none'; }
+}
+
+/* ── SMALL RESPONSIVE GRAPHICS ── */
+function drawWaveform() {
+  if(!audioBuffer) return;
+  const dpr = window.devicePixelRatio || 1, W = waveWrap.offsetWidth, H = waveWrap.offsetHeight;
+  if(W === 0 || H === 0) return;
+  
+  const cW = $('waveform'), cO = $('wave-overlay');
+  [cW, cO].forEach(c => { c.width = W*dpr; c.height = H*dpr; });
+  const ctx = cW.getContext('2d'); ctx.scale(dpr, dpr);
+  const data = audioBuffer.getChannelData(0), step = Math.ceil(data.length/W);
+  
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, isDark ? '#34d399' : '#10b981');
+  grad.addColorStop(1, isDark ? '#064e3b' : '#6ee7b7');
+  
+  ctx.strokeStyle = grad; ctx.lineWidth = 1; ctx.beginPath();
+  
+  for(let x=0; x<W; x++) {
+    let mn=1, mx=-1;
+    for(let j=x*step; j<Math.min((x+1)*step, data.length); j++) { if(data[j]<mn) mn=data[j]; if(data[j]>mx) mx=data[j]; }
+    ctx.moveTo(x, ((1+mn)/2)*H); ctx.lineTo(x, ((1+mx)/2)*H);
+  }
+  ctx.stroke();
+}
+
+function drawMarkerOverlay() {
+  if(!audioBuffer) return;
+  const W = waveWrap.offsetWidth, H = waveWrap.offsetHeight;
+  if(W === 0 || H === 0) return;
+  
+  const ctx = $('wave-overlay').getContext('2d'), dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr); ctx.clearRect(0,0,W,H);
+  
+  // 1. Draw Selection Region (if any)
+  if (selectionStartSec !== null && selectionEndSec !== null) {
+    const s1 = Math.min(selectionStartSec, selectionEndSec);
+    const s2 = Math.max(selectionStartSec, selectionEndSec);
+    const x1 = (s1 / audioBuffer.duration) * W;
+    const x2 = (s2 / audioBuffer.duration) * W;
+    
+    ctx.fillStyle = isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)';
+    ctx.fillRect(x1, 0, x2 - x1, H);
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x1, 0); ctx.lineTo(x1, H); ctx.moveTo(x2, 0); ctx.lineTo(x2, H); ctx.stroke();
+  }
+
+  // 2. Playhead
+  if(audioBuffer && audioPlayer.src) {
+    const px = (audioPlayer.currentTime / audioBuffer.duration) * W;
+    ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+
+    const phFill = isDark ? '#ffffff' : '#0078D7';
+    ctx.fillStyle = phFill; ctx.beginPath(); ctx.moveTo(px - 5, 0); ctx.lineTo(px + 5, 0); ctx.lineTo(px + 5, 5); ctx.lineTo(px, 10); ctx.lineTo(px - 5, 5); ctx.fill();
+  }
+
+  // 3. Verse Markers
+  detectedMarkers.forEach((m, i) => {
+    const x = (m.center / audioBuffer.duration) * W;
+    const isHoveredOrDragged = (i === hoveredMarkerIndex || i === draggedMarkerIndex);
+    
+    ctx.strokeStyle = isHoveredOrDragged ? '#10b981' : (i===0 ? '#f59e0b' : (isDark ? '#cbd5e1' : '#64748b')); 
+    ctx.lineWidth = isHoveredOrDragged ? 2.5 : 1.5; 
+    if(!isHoveredOrDragged) ctx.setLineDash([4,4]);
+    
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); ctx.setLineDash([]);
+    
+    if (isHoveredOrDragged) {
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath(); ctx.arc(x, H/2, 6, 0, Math.PI*2); ctx.fill();
+    }
+  });
+}
+
+const ro = new ResizeObserver(() => {
+  if(waveWrap.style.display === 'block') { requestAnimationFrame(() => { drawWaveform(); drawMarkerOverlay(); }); }
+});
+ro.observe(waveWrap);
+
+/* ── SMALL WAVEFORM INTERACTION (DRAG & SCRUB) ── */
+let isScrubbingSmall = false;
+
+function getSecFromMouse(e, rect) {
+  let x = e.clientX - rect.left;
+  x = Math.max(0, Math.min(x, rect.width));
+  return (x / rect.width) * audioBuffer.duration;
+}
+
+function scrubSmallPreview(e) {
+  if (!audioBuffer) return;
+  const rect = waveWrap.getBoundingClientRect();
+  const time = getSecFromMouse(e, rect);
+  audioPlayer.currentTime = time;
+  drawMarkerOverlay();
+  if ($('fw-modal').classList.contains('active')) { drawFWOverlay(); updateFWTime(); }
+}
+
+waveWrap.addEventListener('mousedown', (e) => {
+  if (!audioBuffer || e.target.closest('#open-full-btn')) return;
+  const rect = waveWrap.getBoundingClientRect();
+  const mouseSec = getSecFromMouse(e, rect);
+  const clickTolerance = audioBuffer.duration * 0.015;
+
+  draggedMarkerIndex = detectedMarkers.findIndex(m => Math.abs(m.center - mouseSec) < clickTolerance);
+
+  if (draggedMarkerIndex !== -1) { return; } 
+
+  if (e.shiftKey) { 
+    isSelecting = true;
+    selectionStartSec = mouseSec;
+    selectionEndSec = mouseSec;
+    return;
+  }
+
+  isScrubbingSmall = true;
+  selectionStartSec = null; 
+  selectionEndSec = null;
+  scrubSmallPreview(e);
+});
+
+
+/* ══════════════════════════════════════════════════════════════
+   PRO FULLSCREEN WAVEFORM ENGINE (AUDITION REPLICA)
+══════════════════════════════════════════════════════════════ */
+const fwModal = $('fw-modal'), fwBody = $('fw-body'), fwRuler = $('fw-ruler');
+const fwCanvas = $('fw-canvas'), fwOverlay = $('fw-overlay'), fwRulerCanvas = $('fw-ruler-canvas');
+const fwPlayheadHandle = $('fw-playhead-handle');
+
+const fwMinimap = $('fw-minimap');
+const fwMinimapCanvas = $('fw-minimap-canvas');
+const fwMinimapOverlay = $('fw-minimap-overlay');
+
+let fwViewStart = 0; let fwViewEnd = 0;
+let fwHoverSec = null; 
+
+$('open-full-btn').addEventListener('click', () => {
+  if (!audioBuffer) return;
+  fwViewStart = 0; fwViewEnd = audioBuffer.duration;
+  
+  fwModal.style.display = 'flex';
+  setTimeout(() => {
+    fwModal.classList.add('active');
+    drawFWMinimap(); drawFWMinimapOverlay(); drawFWRuler(); drawFWWaveform(); drawFWOverlay(); updateFWTime();
+  }, 10);
+});
+
+$('fw-close').addEventListener('click', () => {
+  fwModal.classList.remove('active'); setTimeout(() => { fwModal.style.display = 'none'; }, 300);
+});
+
+// ── Zoom & Trackpad Pan Logic ──
+fwBody.addEventListener('wheel', (e) => {
+  if (!audioBuffer) return;
+  e.preventDefault();
+
+  const rect = fwBody.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mousePct = mouseX / rect.width;
+  const viewDuration = fwViewEnd - fwViewStart;
+  const mouseTime = fwViewStart + mousePct * viewDuration;
+
+  if (e.ctrlKey || e.metaKey || Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+    const zoomFactor = e.deltaY > 0 ? 1.2 : 0.8; 
+    let newDuration = viewDuration * zoomFactor;
+    newDuration = Math.max(0.05, Math.min(newDuration, audioBuffer.duration)); 
+
+    fwViewStart = mouseTime - mousePct * newDuration;
+    fwViewEnd = mouseTime + (1 - mousePct) * newDuration;
+
+    if (fwViewStart < 0) { fwViewStart = 0; fwViewEnd = Math.min(audioBuffer.duration, newDuration); }
+    if (fwViewEnd > audioBuffer.duration) { fwViewEnd = audioBuffer.duration; fwViewStart = Math.max(0, fwViewEnd - newDuration); }
+  } else {
+    const panShift = (e.deltaX / rect.width) * viewDuration;
+    fwViewStart += panShift; fwViewEnd += panShift;
+
+    if (fwViewStart < 0) { fwViewEnd -= fwViewStart; fwViewStart = 0; }
+    if (fwViewEnd > audioBuffer.duration) { fwViewStart -= (fwViewEnd - audioBuffer.duration); fwViewEnd = audioBuffer.duration; }
+  }
+  
+  requestAnimationFrame(() => { drawFWRuler(); drawFWWaveform(); drawFWOverlay(); drawFWMinimapOverlay(); });
+}, { passive: false });
+
+// ── Minimap Pan Logic ──
+let isDraggingMinimap = false;
+
+function scrubMinimap(e) {
+  const rect = fwMinimap.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  x = Math.max(0, Math.min(x, rect.width));
+  const pct = x / rect.width;
+  
+  const viewDuration = fwViewEnd - fwViewStart;
+  const centerTime = pct * audioBuffer.duration;
+  
+  fwViewStart = centerTime - (viewDuration / 2);
+  fwViewEnd = centerTime + (viewDuration / 2);
+  
+  if (fwViewStart < 0) { fwViewStart = 0; fwViewEnd = Math.min(audioBuffer.duration, viewDuration); }
+  if (fwViewEnd > audioBuffer.duration) { fwViewEnd = audioBuffer.duration; fwViewStart = Math.max(0, fwViewEnd - viewDuration); }
+
+  requestAnimationFrame(() => { drawFWRuler(); drawFWWaveform(); drawFWOverlay(); drawFWMinimapOverlay(); });
+}
+
+fwMinimap.addEventListener('mousedown', (e) => {
+  if (!audioBuffer) return;
+  isDraggingMinimap = true; scrubMinimap(e);
+});
+
+// ── Playhead Scrubbing (Audition Style) ──
+let isScrubbing = false;
+
+function scrubPlayhead(e) {
+  const rect = fwRuler.getBoundingClientRect(); 
+  let x = e.clientX - rect.left;
+  x = Math.max(0, Math.min(x, rect.width));
+  const pct = x / rect.width;
+  const time = fwViewStart + pct * (fwViewEnd - fwViewStart);
+
+  audioPlayer.currentTime = time;
+
+  drawFWOverlay(); drawMarkerOverlay(); updateFWTime();
+}
+
+fwRuler.addEventListener('mousedown', (e) => { if (!audioBuffer) return; isScrubbing = true; scrubPlayhead(e); });
+fwPlayheadHandle.addEventListener('mousedown', (e) => { if (!audioBuffer) return; isScrubbing = true; e.stopPropagation(); scrubPlayhead(e); });
+
+// ── Drag to Select, Drag to Move Marker, Right/Middle Click to Pan, Click to Seek ──
+let isDraggingFW = false; let lastDragX = 0; let dragStartX = 0;
+
+fwBody.addEventListener('mousedown', (e) => { 
+  if (!audioBuffer) return;
+  const rect = fwBody.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  const mouseSec = fwViewStart + pct * (fwViewEnd - fwViewStart);
+
+  if (e.button === 0) { 
+    // Check if we clicked on a Marker first
+    const clickTolerance = (fwViewEnd - fwViewStart) * 0.015;
+    const clickedMarkerIndex = detectedMarkers.findIndex(m => Math.abs(m.center - mouseSec) < clickTolerance);
+    
+    if (clickedMarkerIndex !== -1) {
+       draggedMarkerIndex = clickedMarkerIndex;
+       return; // Exit early so we don't trigger Selection logic
+    }
+
+    // Otherwise, Left-click: Start selection (like text)
+    isSelecting = true;
+    isDraggingFW = false;
+    dragStartX = e.clientX; 
+    selectionStartSec = mouseSec;
+    selectionEndSec = mouseSec;
+    requestAnimationFrame(drawFWOverlay);
+  } else if (e.button === 1 || e.button === 2) { 
+    // Middle or Right-click: Pan the waveform
+    isDraggingFW = true;
+    isSelecting = false;
+    lastDragX = e.clientX; 
+    dragStartX = e.clientX; 
+    selectionStartSec = null;
+    selectionEndSec = null;
+    requestAnimationFrame(drawFWOverlay);
+  }
+});
+
+// Prevent the context menu from showing so right-click can be used purely for panning
+fwBody.addEventListener('contextmenu', e => e.preventDefault());
+
+// Track mouse movement to draw the I-beam line and Handle Marker Hover
+fwBody.addEventListener('mousemove', (e) => {
+  if (!audioBuffer) return;
+  const rect = fwBody.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  fwHoverSec = fwViewStart + pct * (fwViewEnd - fwViewStart);
+  
+  if (!isDraggingFW && !isPlaying && !isSelecting && draggedMarkerIndex === -1) {
+    // Detect Hover over Marker (Dynamically scales with zoom)
+    const clickTolerance = (fwViewEnd - fwViewStart) * 0.015;
+    const previousHover = hoveredMarkerIndex;
+    hoveredMarkerIndex = detectedMarkers.findIndex(m => Math.abs(m.center - fwHoverSec) < clickTolerance);
+    
+    if (previousHover !== hoveredMarkerIndex) {
+      fwBody.style.cursor = hoveredMarkerIndex !== -1 ? 'col-resize' : 'text';
+    }
+    requestAnimationFrame(drawFWOverlay);
+  } else if (!isDraggingFW && !isPlaying) {
+    requestAnimationFrame(drawFWOverlay);
+  }
+});
+
+fwBody.addEventListener('mouseleave', () => {
+  fwHoverSec = null;
+  if (draggedMarkerIndex === -1) {
+      hoveredMarkerIndex = -1;
+      fwBody.style.cursor = 'text';
+  }
+  if (!isDraggingFW && !isPlaying) requestAnimationFrame(drawFWOverlay);
+});
+
+
+/* ── GLOBAL MOUSE EVENTS (Selection, Scrubbing, Panning, Marker Dragging) ── */
+window.addEventListener('mousemove', (e) => {
+  if (!audioBuffer) return;
+
+  if (isSelecting) {
+     if ($('fw-modal').classList.contains('active')) {
+         const rect = fwBody.getBoundingClientRect();
+         let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+         const pct = x / rect.width;
+         selectionEndSec = fwViewStart + pct * (fwViewEnd - fwViewStart);
+         requestAnimationFrame(drawFWOverlay);
+     } else {
+         const rect = waveWrap.getBoundingClientRect();
+         let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+         const pct = x / rect.width;
+         selectionEndSec = pct * audioBuffer.duration;
+         drawMarkerOverlay();
+     }
+     return;
+  }
+
+  if (isDraggingMinimap) { scrubMinimap(e); return; }
+  if (isScrubbing) { scrubPlayhead(e); return; }
+
+  // Unified Marker Dragging (Works in both views)
+  if (draggedMarkerIndex !== -1) {
+    if ($('fw-modal').classList.contains('active')) {
+        const rect = fwBody.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        let newCenter = fwViewStart + pct * (fwViewEnd - fwViewStart);
+        // Clamp to physical audio bounds, but allow dragging off current zoomed screen
+        newCenter = Math.max(0, Math.min(newCenter, audioBuffer.duration));
+        detectedMarkers[draggedMarkerIndex].center = newCenter;
+        requestAnimationFrame(drawFWOverlay);
+    } else {
+        const rect = waveWrap.getBoundingClientRect();
+        detectedMarkers[draggedMarkerIndex].center = getSecFromMouse(e, rect);
+        drawMarkerOverlay();
+    }
+    
+    // Update live table
+    const tableCells = document.querySelectorAll('#markers-body tr .td-start');
+    if(tableCells[draggedMarkerIndex]) { tableCells[draggedMarkerIndex].textContent = fmtTime(detectedMarkers[draggedMarkerIndex].center); }
+    return;
+  }
+
+  if (isScrubbingSmall) { scrubSmallPreview(e); return; }
+
+  // Small View Hover Logic (Only active if Pro Viewer is closed)
+  if (!isScrubbingSmall && draggedMarkerIndex === -1 && waveWrap.contains(e.target) && !$('fw-modal').classList.contains('active')) {
+    const rect = waveWrap.getBoundingClientRect();
+    const mouseSec = getSecFromMouse(e, rect);
+    const clickTolerance = audioBuffer.duration * 0.015;
+    const previousHover = hoveredMarkerIndex;
+    hoveredMarkerIndex = detectedMarkers.findIndex(m => Math.abs(m.center - mouseSec) < clickTolerance);
+    
+    if (previousHover !== hoveredMarkerIndex) {
+      waveWrap.style.cursor = hoveredMarkerIndex !== -1 ? 'col-resize' : 'crosshair';
+      drawMarkerOverlay();
+    }
+  }
+
+  // FW Panning
+  if (isDraggingFW) {
+    const deltaX = e.clientX - lastDragX; lastDragX = e.clientX;
+    if (deltaX !== 0) {
+      const rect = fwBody.getBoundingClientRect();
+      const viewDuration = fwViewEnd - fwViewStart;
+      const shiftTime = -(deltaX / rect.width) * viewDuration;
+
+      fwViewStart += shiftTime; fwViewEnd += shiftTime;
+
+      if (fwViewStart < 0) { fwViewEnd -= fwViewStart; fwViewStart = 0; }
+      if (fwViewEnd > audioBuffer.duration) { fwViewStart -= (fwViewEnd - audioBuffer.duration); fwViewEnd = audioBuffer.duration; }
+      
+      requestAnimationFrame(() => { drawFWRuler(); drawFWWaveform(); drawFWOverlay(); drawFWMinimapOverlay(); });
+    }
+  }
+});
+
+window.addEventListener('mouseup', (e) => {
+  isDraggingMinimap = false; isScrubbing = false; isScrubbingSmall = false;
+  
+  // Handle Left-Click Select / Seek
+  if (isSelecting) {
+    isSelecting = false;
+    
+    // If it was just a click without dragging (distance < 5px), place playhead
+    if (Math.abs(e.clientX - dragStartX) < 5 && audioBuffer) {
+      const rect = fwBody.getBoundingClientRect();
+      const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+      const pct = x / rect.width;
+      audioPlayer.currentTime = fwViewStart + pct * (fwViewEnd - fwViewStart);
+
+      // Clear selection box and update views
+      selectionStartSec = null;
+      selectionEndSec = null;
+      drawFWOverlay(); drawMarkerOverlay(); updateFWTime();
+    }
+  }
+
+  if (draggedMarkerIndex !== -1) {
+    saveStateForUndo(); // Save state if user moved a marker
+    detectedMarkers.sort((a, b) => a.center - b.center);
+    updateMarkerTable();
+    draggedMarkerIndex = -1;
+    
+    // Sync UI views
+    if ($('fw-modal').classList.contains('active')) {
+        drawFWOverlay();
+        drawMarkerOverlay();
+    } else {
+        drawMarkerOverlay();
+    }
+  }
+
+  if (isDraggingFW) {
+    isDraggingFW = false;
+  }
+});
+
+
+// ── Scaled Rendering Functions ──
+
+function drawFWMinimap() {
+  if (!audioBuffer) return;
+  const w = fwMinimap.offsetWidth, h = fwMinimap.offsetHeight, dpr = window.devicePixelRatio || 1;
+  fwMinimapCanvas.width = w * dpr; fwMinimapCanvas.height = h * dpr;
+  const ctx = fwMinimapCanvas.getContext('2d'); ctx.scale(dpr, dpr);
+
+  const data = audioBuffer.getChannelData(0);
+  const step = Math.max(1, Math.floor(data.length / w));
+
+  ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#42f5b0'; 
+  
+  for(let x = 0; x < w; x++) {
+    let min = 1, max = -1;
+    const sIdx = x * step; const eIdx = Math.min(sIdx + step, data.length);
+    if (sIdx >= data.length) break;
+    for(let j = sIdx; j < eIdx; j++) { if(data[j] < min) min = data[j]; if(data[j] > max) max = data[j]; }
+    let yTop = (1 - max) / 2 * h, yBottom = (1 - min) / 2 * h;
+    ctx.fillRect(x, yTop, 1, Math.max(1, yBottom - yTop));
+  }
+}
+
+function drawFWMinimapOverlay() {
+  if (!audioBuffer) return;
+  const w = fwMinimap.offsetWidth, h = fwMinimap.offsetHeight, dpr = window.devicePixelRatio || 1;
+  fwMinimapOverlay.width = w * dpr; fwMinimapOverlay.height = h * dpr;
+  const ctx = fwMinimapOverlay.getContext('2d'); ctx.scale(dpr, dpr); ctx.clearRect(0, 0, w, h);
+
+  const startX = (fwViewStart / audioBuffer.duration) * w;
+  const endX = (fwViewEnd / audioBuffer.duration) * w;
+  const boxW = Math.max(1, endX - startX);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'; ctx.fillRect(startX, 0, boxW, h);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; ctx.lineWidth = 1; ctx.strokeRect(startX, 0, boxW, h);
+}
+
+
+function drawFWRuler() {
+  if (!audioBuffer) return;
+  const w = fwRuler.offsetWidth, h = fwRuler.offsetHeight, dpr = window.devicePixelRatio || 1;
+  fwRulerCanvas.width = w * dpr; fwRulerCanvas.height = h * dpr;
+  const ctx = fwRulerCanvas.getContext('2d'); ctx.scale(dpr, dpr);
+
+  ctx.fillStyle = '#71717a'; ctx.font = '10px "JetBrains Mono"'; ctx.textBaseline = 'top';
+
+  const duration = fwViewEnd - fwViewStart; const divisions = 20; 
+  for (let i = 0; i <= divisions; i++) {
+    let t = fwViewStart + (duration / divisions) * i;
+    let x = (w / divisions) * i;
+    ctx.fillRect(x, h - 6, 1, 6);
+    if (i < divisions) ctx.fillText(fmtTime(t), x + 4, 4);
+  }
+}
+
+function drawFWWaveform() {
+  if(!audioBuffer) return;
+  const w = fwBody.offsetWidth, h = fwBody.offsetHeight, dpr = window.devicePixelRatio || 1;
+  fwCanvas.width = w * dpr; fwCanvas.height = h * dpr;
+  const ctx = fwCanvas.getContext('2d'); ctx.scale(dpr, dpr); ctx.clearRect(0, 0, w, h);
+
+  ctx.strokeStyle = 'rgba(66, 245, 176, 0.15)'; ctx.lineWidth = 1; ctx.beginPath();
+  const divisions = 20;
+  for(let i=1; i<divisions; i++) { let x = (w / divisions) * i; ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+  for(let i=1; i<=3; i++) { let y = (h/4)*i; ctx.moveTo(0, y); ctx.lineTo(w, y); }
+  ctx.stroke();
+
+  const data = audioBuffer.getChannelData(0); const rate = audioBuffer.sampleRate;
+  
+  const startSample = Math.max(0, Math.floor(fwViewStart * rate));
+  const endSample = Math.min(data.length, Math.floor(fwViewEnd * rate));
+  const totalSamples = endSample - startSample;
+  
+  const step = Math.max(1, Math.floor(totalSamples / w));
+
+  ctx.fillStyle = '#27272a'; ctx.fillRect(0, h/2, w, 1);
+  ctx.fillStyle = '#42f5b0'; 
+  
+  for(let x = 0; x < w; x++) {
+    let min = 1, max = -1;
+    const sIdx = startSample + x * step; const eIdx = Math.min(sIdx + step, endSample);
+    if (sIdx >= endSample) break;
+    for(let j = sIdx; j < eIdx; j++) { if(data[j] < min) min = data[j]; if(data[j] > max) max = data[j]; }
+    let yTop = (1 - max) / 2 * h, yBottom = (1 - min) / 2 * h;
+    ctx.fillRect(x, yTop, 1, Math.max(1, yBottom - yTop));
+  }
+}
+
+function drawFWOverlay() {
+  if (!audioBuffer) return;
+  const w = fwBody.offsetWidth, h = fwBody.offsetHeight, dpr = window.devicePixelRatio || 1;
+  fwOverlay.width = w * dpr; fwOverlay.height = h * dpr; 
+  const ctx = fwOverlay.getContext('2d'); ctx.scale(dpr, dpr); ctx.clearRect(0, 0, w, h);
+
+  const duration = fwViewEnd - fwViewStart;
+
+  // 1. Draw Selection Region (if any)
+  if (selectionStartSec !== null && selectionEndSec !== null) {
+    const s1 = Math.min(selectionStartSec, selectionEndSec);
+    const s2 = Math.max(selectionStartSec, selectionEndSec);
+    
+    if (s2 > fwViewStart && s1 < fwViewEnd) {
+      const x1 = Math.max(0, ((s1 - fwViewStart) / duration) * w);
+      const x2 = Math.min(w, ((s2 - fwViewStart) / duration) * w);
+      
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+      ctx.fillRect(x1, 0, x2 - x1, h);
+      
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x1, 0); ctx.lineTo(x1, h); ctx.moveTo(x2, 0); ctx.lineTo(x2, h); ctx.stroke();
+    }
+  }
+
+  // 2. Playhead
+  if (audioPlayer.src) {
+    const px = ((audioPlayer.currentTime - fwViewStart) / duration) * w;
+    if (px >= 0 && px <= w) {
+      ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+      
+      fwPlayheadHandle.style.display = 'block'; fwPlayheadHandle.style.left = px + 'px';
+    } else { fwPlayheadHandle.style.display = 'none'; }
+  } else { fwPlayheadHandle.style.display = 'none'; }
+
+  // 3. I-Beam Hover Cursor (Only if not hovering a marker)
+  if (fwHoverSec !== null && fwHoverSec >= fwViewStart && fwHoverSec <= fwViewEnd && !isPlaying && !isDraggingFW && !isSelecting && hoveredMarkerIndex === -1) {
+    const hx = ((fwHoverSec - fwViewStart) / duration) * w;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(hx - 3, 0); ctx.lineTo(hx + 3, 0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hx - 3, h); ctx.lineTo(hx + 3, h); ctx.stroke();
+  }
+
+  // 4. Markers
+  ctx.font = '500 11px "Inter", sans-serif';
+  detectedMarkers.forEach((m, i) => {
+    if (m.center >= fwViewStart && m.center <= fwViewEnd) {
+      const x = ((m.center - fwViewStart) / duration) * w;
+      const isHoveredOrDragged = (i === hoveredMarkerIndex || i === draggedMarkerIndex);
+      
+      ctx.strokeStyle = isHoveredOrDragged ? '#10b981' : '#ffffff'; 
+      ctx.lineWidth = isHoveredOrDragged ? 2 : 1; 
+      if(!isHoveredOrDragged) ctx.setLineDash([2, 4]);
+      
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); ctx.setLineDash([]);
+
+      if (isHoveredOrDragged) {
+         ctx.fillStyle = '#10b981';
+         ctx.beginPath(); ctx.arc(x, h/2, 6, 0, Math.PI*2); ctx.fill();
+      }
+
+      const text = m.name; const tw = ctx.measureText(text).width;
+      
+      ctx.fillStyle = isHoveredOrDragged ? '#10b981' : '#3f3f46'; ctx.beginPath();
+      ctx.moveTo(x, 0); ctx.lineTo(x + tw + 16, 0); ctx.lineTo(x + tw + 16, 18); ctx.lineTo(x + 6, 18); ctx.lineTo(x, 24); ctx.fill();
+      
+      ctx.fillStyle = isHoveredOrDragged ? '#000000' : '#f8fafc'; ctx.fillText(text, x + 8, 12);
+    }
+  });
+}
+
+function updateFWTime() { if (!audioBuffer) return; $('fw-time').textContent = `${fmtTime(audioPlayer.currentTime)} / ${fmtTime(audioBuffer.duration)}`; }
+
+window.addEventListener('resize', () => {
+  if (fwModal.classList.contains('active')) { drawFWMinimap(); drawFWMinimapOverlay(); drawFWRuler(); drawFWWaveform(); drawFWOverlay(); }
+});
+
+
+/* ── PROCESSING ── */
+processBtn.addEventListener('click', async () => {
+  if(!audioBuffer) return;
+  const nv = parseInt($('num-verses').value);
+  if(isNaN(nv) || nv<1) { log('<span class="er">Constraint Error: Provide a valid verse count.</span>'); return; }
+  const lbl = $('chapter-label').value.trim() || 'Chapter', ms = parseFloat($('min-silence').value)||1.0, th = parseFloat($('threshold').value)||0.005;
+  
+  processBtn.disabled = true; dlWav.disabled = true; dlCsv.disabled = true;
+  resultsContent.style.display = 'none'; emptyState.style.display = 'flex';
+  log('Executing silence threshold sweep...'); progWrap.style.display = 'block'; setProgress(15);
+  await new Promise(r => setTimeout(r,40));
+  
+  const smp = audioBuffer.getChannelData(0), rate = audioBuffer.sampleRate;
+  setProgress(45); await new Promise(r => setTimeout(r,20));
+  
+  const win = Math.floor(rate*0.01), minW = Math.ceil(ms/0.01);
+  let regs = [], inS = false, sSt = 0;
+  for(let i=0; i+win<smp.length; i+=win) {
+    let sum=0; for(let j=i; j<i+win; j++) sum+=smp[j]*smp[j];
+    if(Math.sqrt(sum/win)<th) { if(!inS){inS=true; sSt=i/rate;} }
+    else if(inS) { inS=false; if((i/rate-sSt)/0.01 >= minW) regs.push({start:sSt, end:i/rate}); }
+  }
+  if(inS && ((smp.length/rate-sSt)/0.01 >= minW)) regs.push({start:sSt, end:smp.length/rate});
+  
+  regs = regs.filter(r => r.end < audioBuffer.duration - 2.5);
+  if(regs.length > nv+1) regs = regs.slice(0, nv+1);
+  setProgress(95);
+
+  if(!regs.length) { log('<span class="wn">Warning: No gaps matched criteria. Adjust minimum silence.</span>'); processBtn.disabled=false; progWrap.style.display='none'; return; }
+  
+  detectedMarkers = regs.map((r,i) => ({ name: i===0?lbl:`Verse ${String(i).padStart(2,'0')}`, center: (r.start+r.end)/2 }));
+  
+  setProgress(100); setTimeout(()=>{progWrap.style.display='none'; setProgress(0);}, 400);
+  const warn = (detectedMarkers.length-1 !== nv) ? ` <span style="color: #eab308; font-weight: 600;">(Found ${detectedMarkers.length-1}, expected ${nv})</span>` : '';
+  log(`<span style="color: var(--ok); font-weight: 600;">Detection Successful</span> <span style="color: var(--text-main); font-weight: 600;">— ${detectedMarkers.length} markers securely plotted</span>${warn}`);
+  
+  updateMarkerTable();
+  emptyState.style.display = 'none'; resultsContent.style.display = 'flex';
+  
+  drawMarkerOverlay(); 
+  if (fwModal.classList.contains('active')) drawFWOverlay(); 
+  
+  processBtn.disabled = false; dlWav.disabled = false; dlCsv.disabled = false;
+});
+
+/* ── EXPORT ── */
+function dlSucc(btn) { btn.classList.add('success'); setTimeout(()=>btn.classList.remove('success'), 2500); }
+
+dlCsv.addEventListener('click', async () => {
+  if(!detectedMarkers.length) return;
+  const csv = '\uFEFFName\tStart\tDuration\tTime Format\tType\tDescription\r\n' + detectedMarkers.map(m => `${m.name}\t${fmtTime(m.center)}\t0:00.000\tdecimal\tCue\t`).join('\r\n');
+  const fn = origFileName.replace(/\.wav$/i, '.csv');
+  try {
+    if(window.showDirectoryPicker) {
+      dlDirCsv = await window.showDirectoryPicker({mode:'readwrite', startIn:dlDirCsv||'downloads'});
+      const fh = await dlDirCsv.getFileHandle(fn, {create:true}), w = await fh.createWritable();
+      await w.write(csv); await w.close(); log(`<span class="ok">File Written: ${dlDirCsv.name}/${fn}</span>`);
+    } else {
+      const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv])); a.download=fn; a.click();
+    }
+    dlSucc(dlCsv);
+  } catch(e) { if(e.name!=='AbortError') log(`<span class="er">I/O Error: ${e.message}</span>`); }
+});
+
+dlWav.addEventListener('click', async () => {
+  if(!rawWavBytes || !detectedMarkers.length) return;
+  dlWav.disabled=true;
+  setTimeout(async () => {
+    try {
+      const rate = audioBuffer.sampleRate, ch = audioBuffer.numberOfChannels;
+      const tSecs = appendChk.checked ? (parseFloat(tailSecsInput.value)||2) : 0;
+      
+      const v = new DataView(rawWavBytes); let off=12, fmt=null, ad=null, sw=2;
+      while(off < rawWavBytes.byteLength-8) {
+        const id = String.fromCharCode(v.getUint8(off),v.getUint8(off+1),v.getUint8(off+2),v.getUint8(off+3)), sz = v.getUint32(off+4,true);
+        if(id==='fmt ') { fmt=rawWavBytes.slice(off, off+8+sz); sw=v.getUint16(off+22,true)/8; }
+        else if(id==='data') ad=rawWavBytes.slice(off, off+8+sz);
+        off += 8+sz+(sz%2); if(id==='data') break;
+      }
+      if(!fmt || !ad) throw new Error('WAV parse error');
+      
+      let fa=ad;
+      if(tSecs>0) {
+        const ob=new Uint8Array(ad,8), nb=new Uint8Array(ob.length + Math.round(rate*tSecs)*ch*sw);
+        nb.set(ob,0); const b=new ArrayBuffer(8+nb.length), dv=new DataView(b);
+        [0x64,0x61,0x74,0x61].forEach((x,i)=>dv.setUint8(i,x)); dv.setUint32(4,nb.length,true);
+        new Uint8Array(b).set(nb,8); fa=b;
+      }
+      
+      const n=detectedMarkers.length, cb=new ArrayBuffer(12+n*24), cv=new DataView(cb);
+      [0x63,0x75,0x65,0x20].forEach((x,i)=>cv.setUint8(i,x)); cv.setUint32(4,4+n*24,true); cv.setUint32(8,n,true);
+      detectedMarkers.forEach((m,i)=>{
+        const b=12+i*24, sp=Math.round(m.center*rate);
+        cv.setUint32(b,i+1,true); cv.setUint32(b+4,sp,true);
+        [0x64,0x61,0x74,0x61].forEach((x,j)=>cv.setUint8(b+8+j,x));
+        cv.setUint32(b+12,0,true); cv.setUint32(b+16,0,true); cv.setUint32(b+20,sp,true);
+      });
+      
+      const enc=new TextEncoder(), ls=detectedMarkers.map((m,i)=>{
+        const nb=enc.encode(m.name+'\0'), np=nb.length%2?new Uint8Array([...nb,0]):nb, pl=new Uint8Array(4+np.length);
+        new DataView(pl.buffer).setUint32(0,i+1,true); pl.set(np,4); return pl;
+      });
+      let aSz=4; ls.forEach(l=>aSz+=8+l.length);
+      const ab=new ArrayBuffer(8+aSz), av=new DataView(ab);
+      [0x4c,0x49,0x53,0x54].forEach((x,i)=>av.setUint8(i,x)); av.setUint32(4,aSz,true); [0x61,0x64,0x74,0x6c].forEach((x,i)=>av.setUint8(8+i,x));
+      const au=new Uint8Array(ab); let p=12;
+      ls.forEach(l=>{ [0x6c,0x61,0x62,0x6c].forEach((x,i)=>au[p+i]=x); av.setUint32(p+4,l.length,true); au.set(l,p+8); p+=8+l.length; });
+      
+      const rSz=fmt.byteLength+fa.byteLength+cb.byteLength+ab.byteLength, out=new Uint8Array(12+rSz), ov=new DataView(out.buffer);
+      [0x52,0x49,0x46,0x46].forEach((x,i)=>out[i]=x); ov.setUint32(4,rSz+4,true); [0x57,0x41,0x56,0x45].forEach((x,i)=>out[8+i]=x);
+      let ps=12; [fmt,fa,cb,ab].forEach(b=>{ out.set(new Uint8Array(b),ps); ps+=b.byteLength; });
+      
+      const fn = origFileName.replace(/\.wav$/i, '.wav');
+      if(window.showDirectoryPicker) {
+        dlDirWav = await window.showDirectoryPicker({mode:'readwrite', startIn:dlDirWav||'downloads'});
+        const fh = await dlDirWav.getFileHandle(fn, {create:true}), w = await fh.createWritable();
+        await w.write(out.buffer); await w.close(); log(`<span class="ok">File Written: ${dlDirWav.name}/${fn}</span>`);
+      } else {
+        const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([out.buffer])); a.download=fn; a.click();
+      }
+      dlSucc(dlWav); dlWav.disabled=false;
+    } catch(e) { if(e.name!=='AbortError') log(`<span class="er">Audio Compiler Error: ${e.message}</span>`); dlWav.disabled=false; }
+  }, 50);
+});
+</script>
+</body>
+</html>
